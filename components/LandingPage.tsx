@@ -45,8 +45,6 @@ const LandingPage: React.FC = () => {
                 </p>
                 <a
                     href={getStartedLink}
-                    target={user ? '_self' : '_blank'}
-                    rel="noopener noreferrer"
                     className="bg-cyan-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-lg hover:bg-cyan-700 transition-transform transform hover:scale-105 inline-block"
                 >
                     {user ? 'Go to Dashboard' : 'Get Started Now'}
@@ -107,8 +105,6 @@ const LandingPage: React.FC = () => {
                                         ) : (
                                             <a 
                                                 href={loginLink}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
                                                 className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition"
                                             >
                                                 <PlayCircle size={18} className="mr-2" />
