@@ -10,11 +10,12 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    // Redirect to the external WordPress site's logout page after clearing local state
-    window.location.href = 'https://www.coding-online.net';
+    // Redirect to a dedicated logout endpoint on the external site for a clean SSO session termination
+    window.location.href = 'https://www.coding-online.net/app-logout';
   };
 
   const headerLink = user ? "/dashboard" : "/";
+  const loginLink = "https://www.coding-online.net/app-login";
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -62,11 +63,13 @@ const Header: React.FC = () => {
             </>
           ) : (
              <a
-                href="https://www.coding-online.net/my-account"
+                href={loginLink}
+                target="_blank" 
+                rel="noopener noreferrer"
                 className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
                 <LogIn size={16} />
-                <span>Login / My Account</span>
+                <span>Login / Register</span>
               </a>
           )}
         </div>

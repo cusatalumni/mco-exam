@@ -6,7 +6,6 @@ import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight } from 'lucide-react';
 import Spinner from './Spinner';
-import toast from 'react-hot-toast';
 
 const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType, title: string, children: React.ReactNode }) => (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -22,14 +21,8 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, paidExamIds } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
-
-    const handleStartPractice = (examId: string) => {
-        if (!user) {
-            toast.error("Please log in via coding-online.net to take a practice test.");
-            return;
-        }
-        navigate(`/test/${examId}`);
-    };
+    
+    const loginLink = "https://www.coding-online.net/app-login";
 
     if (isInitializing || !activeOrg) {
         return (
@@ -40,7 +33,7 @@ const LandingPage: React.FC = () => {
         );
     }
     
-    const getStartedLink = user ? '/dashboard' : 'https://www.coding-online.net/my-account';
+    const getStartedLink = user ? '/dashboard' : loginLink;
 
     return (
         <div className="space-y-16 sm:space-y-24">
@@ -52,6 +45,8 @@ const LandingPage: React.FC = () => {
                 </p>
                 <a
                     href={getStartedLink}
+                    target={user ? '_self' : '_blank'}
+                    rel="noopener noreferrer"
                     className="bg-cyan-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-lg hover:bg-cyan-700 transition-transform transform hover:scale-105 inline-block"
                 >
                     {user ? 'Go to Dashboard' : 'Get Started Now'}
@@ -98,18 +93,29 @@ const LandingPage: React.FC = () => {
                                 </div>
                             
                                 {/* Right side: Actions */}
-                                <div className="flex-shrink-0 w-full md:w-auto md:min-w-[280px] space-y-4">
+                                <div className="flex-shrink-0 w-full md:w-auto space-y-4">
                                     {/* Practice Test Button */}
                                     <div className="text-center">
-                                        <button 
-                                            onClick={() => handleStartPractice(practiceExam.id)}
-                                            className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition disabled:opacity-60"
-                                            disabled={!user}
-                                        >
-                                            <PlayCircle size={18} className="mr-2" />
-                                            <span>Practice Test</span>
-                                        </button>
-                                        <p className="text-xs text-slate-500 mt-1">{practiceExam.numberOfQuestions} questions. {user ? `Available` : 'Login to practice.'}</p>
+                                        {user ? (
+                                             <button 
+                                                onClick={() => navigate(`/test/${practiceExam.id}`)}
+                                                className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition"
+                                            >
+                                                <PlayCircle size={18} className="mr-2" />
+                                                <span>Start Practice</span>
+                                            </button>
+                                        ) : (
+                                            <a 
+                                                href={loginLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition"
+                                            >
+                                                <PlayCircle size={18} className="mr-2" />
+                                                <span>Login to Practice</span>
+                                            </a>
+                                        )}
+                                        <p className="text-xs text-slate-500 mt-1">{practiceExam.numberOfQuestions} questions. {user ? `Available` : 'Login required.'}</p>
                                     </div>
                             
                                     {/* Certification Exam Button */}
@@ -123,7 +129,7 @@ const LandingPage: React.FC = () => {
                                             </button>
                                         ) : (
                                             <a 
-                                                href="https://www.coding-online.net"
+                                                href={`https://www.coding-online.net/shop/${category.id}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition"
