@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,13 +10,11 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    // Redirect to a dedicated logout endpoint on the external site for a clean SSO session termination
-    window.location.href = 'https://www.coding-online.net/app-logout';
+    // Redirect to the external WordPress site's logout page after clearing local state
+    window.location.href = 'https://www.coding-online.net';
   };
 
   const headerLink = user ? "/dashboard" : "/";
-  // Always send a default redirect path to ensure a smooth return.
-  const loginLink = `https://www.coding-online.net/app-login?redirect_to=${encodeURIComponent('/dashboard')}`;
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -65,11 +62,11 @@ const Header: React.FC = () => {
             </>
           ) : (
              <a
-                href={loginLink}
+                href="https://www.coding-online.net/login"
                 className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
                 <LogIn size={16} />
-                <span>Login / Register</span>
+                <span>Login</span>
               </a>
           )}
         </div>
