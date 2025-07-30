@@ -1,5 +1,6 @@
-import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import React, { useEffect } from 'react';
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -12,7 +13,6 @@ import Certificate from './components/Certificate';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
-// Checkout is removed
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,12 +21,16 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user } = useAuth();
   if (!user) {
+    // This could redirect to a login page, but our flow directs from the page itself.
+    // So, redirecting to home is a safe fallback.
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
 
 const AppContent: React.FC = () => {
+    // The complex redirection logic has been moved to the Login component
+    // to resolve race conditions. This component is now much simpler.
     return (
         <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
             <Header />

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,11 +13,17 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        // Get the intended destination, defaulting to the dashboard.
+        const redirectPath = searchParams.get('redirect_to') || '/dashboard';
+
         if (token) {
             try {
+                // Process the token to set the auth state.
                 loginWithToken(token);
                 toast.success('Logged in successfully!');
-                navigate('/dashboard', { replace: true });
+                // NOW, navigate to the final destination. This happens after auth state is set.
+                navigate(redirectPath, { replace: true });
+
             } catch (error: any) {
                 toast.error(error.message || 'Invalid login token. Please try again.');
                 console.error("Token processing error:", error);
@@ -26,6 +33,7 @@ const Login: React.FC = () => {
             toast.error('Login token not found.');
             navigate('/', { replace: true });
         }
+        // The dependency array ensures this runs only once when the component mounts.
     }, [searchParams, loginWithToken, navigate]);
 
     return (
