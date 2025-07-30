@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -20,7 +22,8 @@ const LandingPage: React.FC = () => {
     const { user, paidExamIds } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
     
-    const loginLink = "https://www.coding-online.net/app-login";
+    // Default login link, will be overridden for context-specific actions
+    const baseLoginLink = `https://www.coding-online.net/app-login`;
 
     if (isInitializing || !activeOrg) {
         return (
@@ -31,7 +34,7 @@ const LandingPage: React.FC = () => {
         );
     }
     
-    const getStartedLink = user ? '/dashboard' : loginLink;
+    const getStartedLink = user ? '/dashboard' : `${baseLoginLink}?redirect_to=${encodeURIComponent('/dashboard')}`;
 
     return (
         <div className="space-y-16 sm:space-y-24">
@@ -79,6 +82,7 @@ const LandingPage: React.FC = () => {
                         if (!practiceExam || !certExam) return null;
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
+                        const practiceLoginLink = `${baseLoginLink}?redirect_to=${encodeURIComponent(`/test/${practiceExam.id}`)}`;
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
@@ -102,7 +106,7 @@ const LandingPage: React.FC = () => {
                                             </button>
                                         ) : (
                                             <a 
-                                                href={loginLink}
+                                                href={practiceLoginLink}
                                                 className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition"
                                             >
                                                 <PlayCircle size={18} className="mr-2" />
@@ -123,7 +127,7 @@ const LandingPage: React.FC = () => {
                                             </button>
                                         ) : (
                                             <a 
-                                                href={`https://www.coding-online.net/shop/${category.id}`}
+                                                href={`https://www.coding-online.net/product/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition"
