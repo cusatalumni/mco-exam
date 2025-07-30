@@ -15,8 +15,8 @@ const Login: React.FC = () => {
         if (token) {
             try {
                 loginWithToken(token);
-                toast.success('Logged in successfully!');
-                navigate('/dashboard', { replace: true });
+                // On success, we no longer navigate from here.
+                // The AppContent component will detect the user state change and redirect to the dashboard.
             } catch (error: any) {
                 toast.error(error.message || 'Invalid login token. Please try again.');
                 console.error("Token processing error:", error);
