@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,12 +14,18 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        const redirectPath = searchParams.get('redirect_to') || '/dashboard';
 
         if (token) {
             try {
-                // Process the token to set the auth state.
-                // Navigation will be handled by the App component once the user state is confirmed.
+                // This component is now responsible for the entire post-login flow.
                 loginWithToken(token);
+                toast.success('Logged in successfully!');
+                
+                // Navigate away immediately, replacing this auth page in history.
+                // This prevents the user from being "stuck" on the login page.
+                navigate(redirectPath, { replace: true });
+
             } catch (err: any) {
                 const errorMessage = err.message || 'Invalid login token. Please try again.';
                 toast.error(errorMessage);
