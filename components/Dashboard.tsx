@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
@@ -62,7 +63,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
                 <span className="text-slate-500 hidden sm:block">Welcome back, {user?.name}!</span>
@@ -102,9 +103,9 @@ const Dashboard: React.FC = () => {
                             }) : (
                                 <div className="text-center py-6 text-slate-500">
                                     <p>You haven't purchased any certification exams yet.</p>
-                                    <button onClick={() => navigate('/')} className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
+                                    <Link to="/" className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center justify-center gap-1">
                                         Browse Exams <ArrowRight size={14} />
-                                    </button>
+                                    </Link>
                                 </div>
                             )}
                         </div>
@@ -203,9 +204,9 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Actions</h3>
                         <div className="space-y-3">
-                             <button onClick={() => navigate('/')} className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
+                             <Link to="/" className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
                                 <Home size={16} /> Browse All Exams
-                            </button>
+                            </Link>
                             <button onClick={() => navigate('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
                                <FileText size={16} /> Preview Certificate
                             </button>
