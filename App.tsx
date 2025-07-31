@@ -1,6 +1,4 @@
 
-
-
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
@@ -37,26 +35,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
+    // If the user is not logged in, redirect to the landing page.
+    // Pass the intended destination in the state so the landing page can be context-aware.
     return <Navigate to="/" replace state={{ from: location, needsLogin: true }} />;
   }
   return <>{children}</>;
 };
 
 const AppContent: React.FC = () => {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    useEffect(() => {
-        if (user && location.pathname === '/auth') {
-            const params = new URLSearchParams(location.search);
-            const redirectPath = params.get('redirect_to') || '/dashboard';
-            
-            toast.success('Logged in successfully!');
-            navigate(redirectPath, { replace: true });
-        }
-    }, [user, location.pathname, location.search, navigate]);
-
+    // The post-login navigation logic has been moved to Login.tsx to fix race conditions.
+    // This component is now only responsible for rendering the main layout and routes.
     return (
         <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
             <Header />
