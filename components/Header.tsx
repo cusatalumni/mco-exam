@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -66,6 +67,8 @@ const Header: React.FC = () => {
           ) : (
              <a
                 href={loginLink}
+                target="_blank" 
+                rel="noopener noreferrer"
                 className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
                 <LogIn size={16} />
