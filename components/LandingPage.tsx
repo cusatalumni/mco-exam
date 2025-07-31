@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -27,8 +26,9 @@ const LandingPage: React.FC = () => {
         if (user) {
             navigate(`/test/${practiceExamId}`);
         } else {
+            // Perform a same-tab redirect for the login flow.
             const practiceLoginUrl = `https://www.coding-online.net/app-login?redirect_to=${encodeURIComponent('/test/' + practiceExamId)}`;
-            window.open(practiceLoginUrl, '_blank');
+            window.location.href = practiceLoginUrl;
         }
     };
 
@@ -43,8 +43,6 @@ const LandingPage: React.FC = () => {
                     </p>
                     <a
                         href={heroLoginLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="inline-flex items-center justify-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105"
                     >
                         <span>Get Started Now</span>
@@ -111,7 +109,7 @@ const LandingPage: React.FC = () => {
                                                 <span>Start Certification</span>
                                             </button>
                                         ) : (
-                                            <a href={purchaseUrl} target="_blank" rel="noopener noreferrer" className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition">
+                                            <a href={purchaseUrl} className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition">
                                                 <Lock size={16} className="mr-2"/>
                                                 <span>Purchase Exam</span>
                                             </a>
