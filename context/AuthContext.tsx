@@ -6,7 +6,6 @@ interface TokenPayload {
     user: User;
     paidExamIds: string[];
 }
-
 interface AuthContextType {
   user: User | null;
   paidExamIds: string[];
