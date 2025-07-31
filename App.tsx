@@ -1,10 +1,12 @@
 
 
+
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useAppContext } from './context/AppContext';
 
 import Login from './components/Login'; // This is now the AuthCallback
 import Dashboard from './components/Dashboard';
@@ -14,6 +16,7 @@ import Certificate from './components/Certificate';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage'; // The main storefront
+import Spinner from './components/Spinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,12 +24,19 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user } = useAuth();
+  const { isInitializing } = useAppContext();
   const location = useLocation();
 
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Spinner />
+          <p className="mt-4 text-slate-500">Preparing Application...</p>
+      </div>
+    );
+  }
+
   if (!user) {
-    // Save the user's intended destination to construct a smart login link.
-    // In this restored version, we might not need a dedicated redirect component,
-    // but the logic remains sound if we wanted to show a "please log in" modal.
     return <Navigate to="/" replace state={{ from: location, needsLogin: true }} />;
   }
   return <>{children}</>;
