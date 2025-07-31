@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,7 +17,8 @@ const Header: React.FC = () => {
   };
 
   const headerLink = user ? "/dashboard" : "/";
-  const loginLink = "https://www.coding-online.net/app-login";
+  // Always send a default redirect path to ensure a smooth return.
+  const loginLink = `https://www.coding-online.net/app-login?redirect_to=${encodeURIComponent('/dashboard')}`;
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -64,6 +67,8 @@ const Header: React.FC = () => {
           ) : (
              <a
                 href={loginLink}
+                target="_blank" 
+                rel="noopener noreferrer"
                 className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
                 <LogIn size={16} />

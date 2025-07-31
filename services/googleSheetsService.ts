@@ -4,26 +4,19 @@ import type { User, Question, UserAnswer, TestResult, CertificateData, Organizat
 import { logoBase64 } from '../assets/logo';
 import { ameliaReedSignatureBase64 } from '../assets/ameliaReedSignature';
 
-const AI_EXAM_TOPICS = [
-    { id: 'topic-icd-10-cm', name: 'ICD-10-CM Fundamentals' },
-    { id: 'topic-cpt-procedural', name: 'CPT Procedural Coding' },
-    { id: 'topic-hcpcs-level-2', name: 'HCPCS Level II' },
-    { id: 'topic-anatomy-physiology', name: 'Anatomy & Physiology' },
-    { id: 'topic-compliance-auditing', name: 'Compliance and Auditing' },
-    { id: 'topic-inpatient-coding', name: 'Inpatient Coding Challenge' },
-    { id: 'topic-outpatient-coding', name: 'Outpatient Coding Challenge' },
-    { id: 'topic-risk-adjustment', name: 'Risk Adjustment (HCC)' },
-    { id: 'topic-medical-terminology', name: 'Medical Terminology' },
-    { id: 'topic-medical-billing', name: 'Medical Billing' },
-];
-
 const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
     { id: 'prod-cpc', name: 'CPC', description: 'A test series designed to prepare you for the AAPC CPC (Certified Professional Coder) certification.', practiceExamId: 'exam-cpc-practice', certificationExamId: 'exam-cpc-cert' },
     { id: 'prod-cca', name: 'CCA', description: 'A test series aligned with AHIMA’s CCA (Certified Coding Associate) exam blueprint.', practiceExamId: 'exam-cca-practice', certificationExamId: 'exam-cca-cert' },
     { id: 'prod-ccs', name: 'CCS', description: 'A comprehensive test series for the AHIMA CCS (Certified Coding Specialist) credential.', practiceExamId: 'exam-ccs-practice', certificationExamId: 'exam-ccs-cert' },
-    { id: 'prod-billing', name: 'Medical Billing', description: 'A test series covering core concepts in medical billing and reimbursement.', practiceExamId: 'exam-billing-practice', certificationExamId: 'exam-billing-cert' },
-    { id: 'prod-risk', name: 'Risk Adjustment Coding', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC).', practiceExamId: 'exam-risk-practice', certificationExamId: 'exam-risk-cert' },
-    { id: 'prod-icd', name: 'ICD-10-CM', description: 'A test series focusing on ICD-10-CM diagnosis coding.', practiceExamId: 'exam-icd-practice', certificationExamId: 'exam-icd-cert' },
+    { id: 'prod-cpb', name: 'CPB', description: 'A test series for the AAPC CPB (Certified Professional Biller) certification.', practiceExamId: 'exam-cpb-practice', certificationExamId: 'exam-cpb-cert' },
+    { id: 'prod-crc', name: 'CRC', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC).', practiceExamId: 'exam-crc-practice', certificationExamId: 'exam-crc-cert' },
+    { id: 'prod-icd', name: 'ICD-10-CM', description: 'A test series focusing on ICD-10-CM diagnosis coding proficiency.', practiceExamId: 'exam-icd-practice', certificationExamId: 'exam-icd-cert' },
+    { id: 'prod-cpma', name: 'CPMA', description: 'A test series for the AAPC CPMA (Certified Professional Medical Auditor) certification.', practiceExamId: 'exam-cpma-practice', certificationExamId: 'exam-cpma-cert' },
+    { id: 'prod-coc', name: 'COC', description: 'A test series for the AAPC COC (Certified Outpatient Coder) certification.', practiceExamId: 'exam-coc-practice', certificationExamId: 'exam-coc-cert' },
+    { id: 'prod-cic', name: 'CIC', description: 'A test series for the AAPC CIC (Certified Inpatient Coder) certification.', practiceExamId: 'exam-cic-practice', certificationExamId: 'exam-cic-cert' },
+    { id: 'prod-mta', name: 'Medical Terminology & Anatomy', description: 'A foundational test series covering core medical terminology and anatomy.', practiceExamId: 'exam-mta-practice', certificationExamId: 'exam-mta-cert' },
+    { id: 'prod-cppm', name: 'CPPM', description: 'A test series for the AAPC CPPM (Certified Physician Practice Manager) certification.', practiceExamId: 'exam-cppm-practice', certificationExamId: 'exam-cppm-cert' },
+    { id: 'prod-cemc', name: 'CEMC', description: 'A test series for the AAPC CEMC (Certified Evaluation and Management Coder) certification.', practiceExamId: 'exam-cemc-practice', certificationExamId: 'exam-cemc-cert' },
 ];
 
 const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
@@ -38,24 +31,42 @@ const CERTIFICATE_TEMPLATES: CertificateTemplate[] = [
 ];
 
 const EXAMS: Exam[] = [
-    // CPC
+    // CPC (Certified Professional Coder)
     { id: 'exam-cpc-practice', name: 'CPC Practice Exam', description: 'Practice for the CPC exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-cpc-cert', name: 'CPC Certification Exam', description: 'Official CPC certification exam.', price: 150, questionSourceUrl: '', numberOfQuestions: 150, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false, recommendedBook: { title: 'Official CPC Certification Study Guide', description: 'The official study guide for the CPC certification. Covers all major topics and includes practice questions.', imageUrl: 'https://images-na.ssl-images-amazon.com/images/I/51kHkSOeG3L._SX396_BO1,204,203,200_.jpg', affiliateLinks: { com: 'https://amazon.com', in: 'https://amazon.in', ae: 'https://amazon.ae' } } },
-    // CCA
+    // CCA (Certified Coding Associate)
     { id: 'exam-cca-practice', name: 'CCA Practice Exam', description: 'Practice for the CCA exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 40, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-cca-cert', name: 'CCA Certification Exam', description: 'Official CCA certification exam.', price: 120, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
-    // CCS
+    // CCS (Certified Coding Specialist)
     { id: 'exam-ccs-practice', name: 'CCS Practice Exam', description: 'Practice for the CCS exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 60, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-ccs-cert', name: 'CCS Certification Exam', description: 'Official CCS certification exam.', price: 180, questionSourceUrl: '', numberOfQuestions: 120, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
-    // Medical Billing
-    { id: 'exam-billing-practice', name: 'Medical Billing Practice Exam', description: 'Practice for Medical Billing.', price: 0, questionSourceUrl: '', numberOfQuestions: 30, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-billing-cert', name: 'Medical Billing Certification', description: 'Official Medical Billing certification.', price: 90, questionSourceUrl: '', numberOfQuestions: 80, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
-    // Risk Adjustment
-    { id: 'exam-risk-practice', name: 'Risk Adjustment Practice Exam', description: 'Practice for Risk Adjustment.', price: 0, questionSourceUrl: '', numberOfQuestions: 45, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-risk-cert', name: 'Risk Adjustment Certification', description: 'Official Risk Adjustment certification.', price: 110, questionSourceUrl: '', numberOfQuestions: 90, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CPB (Certified Professional Biller)
+    { id: 'exam-cpb-practice', name: 'CPB Practice Exam', description: 'Practice for the CPB exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 30, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-cpb-cert', name: 'CPB Certification Exam', description: 'Official CPB certification exam.', price: 100, questionSourceUrl: '', numberOfQuestions: 80, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CRC (Certified Risk Adjustment Coder)
+    { id: 'exam-crc-practice', name: 'CRC Practice Exam', description: 'Practice for Risk Adjustment.', price: 0, questionSourceUrl: '', numberOfQuestions: 45, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-crc-cert', name: 'CRC Certification Exam', description: 'Official CRC certification.', price: 110, questionSourceUrl: '', numberOfQuestions: 90, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
     // ICD-10-CM
     { id: 'exam-icd-practice', name: 'ICD-10-CM Practice Exam', description: 'Practice for ICD-10-CM.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-icd-cert', name: 'ICD-10-CM Certification Exam', description: 'Official ICD-10-CM certification.', price: 130, questionSourceUrl: '', numberOfQuestions: 110, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CPMA (Certified Professional Medical Auditor)
+    { id: 'exam-cpma-practice', name: 'CPMA Practice Exam', description: 'Practice for the CPMA exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-cpma-cert', name: 'CPMA Certification Exam', description: 'Official CPMA certification exam.', price: 160, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // COC (Certified Outpatient Coder)
+    { id: 'exam-coc-practice', name: 'COC Practice Exam', description: 'Practice for the COC exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-coc-cert', name: 'COC Certification Exam', description: 'Official COC certification exam.', price: 140, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CIC (Certified Inpatient Coder)
+    { id: 'exam-cic-practice', name: 'CIC Practice Exam', description: 'Practice for the CIC exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-cic-cert', name: 'CIC Certification Exam', description: 'Official CIC certification exam.', price: 170, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // MTA (Medical Terminology & Anatomy)
+    { id: 'exam-mta-practice', name: 'Medical Terminology & Anatomy Practice', description: 'Practice for MTA.', price: 0, questionSourceUrl: '', numberOfQuestions: 40, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-mta-cert', name: 'Medical Terminology & Anatomy Certification', description: 'Official MTA certification.', price: 80, questionSourceUrl: '', numberOfQuestions: 80, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CPPM (Certified Physician Practice Manager)
+    { id: 'exam-cppm-practice', name: 'CPPM Practice Exam', description: 'Practice for the CPPM exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 50, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-cppm-cert', name: 'CPPM Certification Exam', description: 'Official CPPM certification exam.', price: 190, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
+    // CEMC (Certified Evaluation and Management Coder)
+    { id: 'exam-cemc-practice', name: 'CEMC Practice Exam', description: 'Practice for the CEMC exam.', price: 0, questionSourceUrl: '', numberOfQuestions: 45, passScore: 70, certificateTemplateId: '', isPractice: true },
+    { id: 'exam-cemc-cert', name: 'CEMC Certification Exam', description: 'Official CEMC certification exam.', price: 175, questionSourceUrl: '', numberOfQuestions: 90, passScore: 70, certificateTemplateId: 'cert-template-main', isPractice: false },
 ];
 
 
