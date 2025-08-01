@@ -1,12 +1,14 @@
 
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight } from 'lucide-react';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
+
+const DUMMY_TOKEN = 'eyJ1c2VyIjp7ImlkIjoic2ltdWxhdGVkLXVzZXIiLCJuYW1lIjoiRGVtbyBVc2VyIiwiZW1haWwiOiJkZW1vQGV4YW1wbGUuY29tIn0sInBhaWRFeGFtSWRzIjpbImV4YW0tY3BjLWNlcnQiLCJleGFtLWNjYS1jZXJ0Il19';
 
 const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType, title: string, children: React.ReactNode }) => (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -25,7 +27,7 @@ const LandingPage: React.FC = () => {
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
-            toast.error("Please log in via coding-online.net to take a practice test.");
+            toast.error("Please log in to take a practice test.");
             return;
         }
         navigate(`/test/${examId}`);
@@ -40,7 +42,7 @@ const LandingPage: React.FC = () => {
         );
     }
     
-    const getStartedLink = user ? '/dashboard' : 'https://www.coding-online.net/login';
+    const getStartedLink = user ? '/dashboard' : `/auth?token=${DUMMY_TOKEN}`;
 
     return (
         <div className="space-y-16 sm:space-y-24">
@@ -50,12 +52,12 @@ const LandingPage: React.FC = () => {
                 <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-8">
                     Our platform offers comprehensive practice exams to help you ace your certification. Log in to access your purchased tests.
                 </p>
-                <a
-                    href={getStartedLink}
+                <Link
+                    to={getStartedLink}
                     className="bg-cyan-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-lg hover:bg-cyan-700 transition-transform transform hover:scale-105 inline-block"
                 >
                     {user ? 'Go to Dashboard' : 'Get Started Now'}
-                </a>
+                </Link>
             </section>
             
             {/* Features Section */}

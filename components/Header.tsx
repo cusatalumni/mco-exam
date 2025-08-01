@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { LogOut, UserCircle, LogIn } from 'lucide-react';
 
+const DUMMY_TOKEN = 'eyJ1c2VyIjp7ImlkIjoic2ltdWxhdGVkLXVzZXIiLCJuYW1lIjoiRGVtbyBVc2VyIiwiZW1haWwiOiJkZW1vQGV4YW1wbGUuY29tIn0sInBhaWRFeGFtSWRzIjpbImV4YW0tY3BjLWNlcnQiLCJleGFtLWNjYS1jZXJ0Il19';
+
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { activeOrg } = useAppContext();
@@ -61,13 +63,13 @@ const Header: React.FC = () => {
               </button>
             </>
           ) : (
-             <a
-                href="https://www.coding-online.net/login"
+             <Link
+                to={`/auth?token=${DUMMY_TOKEN}`}
                 className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
               >
                 <LogIn size={16} />
                 <span>Login</span>
-              </a>
+              </Link>
           )}
         </div>
       </div>
