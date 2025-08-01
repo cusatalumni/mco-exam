@@ -10,10 +10,11 @@ interface TokenPayload {
 interface AuthContextType {
   user: User | null;
   paidExamIds: string[];
+  cart: string[];
   loginWithToken: (token: string) => void;
   logout: () => void;
   useFreeAttempt: () => void;
-  cart: string[];
+  addToCart: (examId: string) => void;
   removeFromCart: (examId: string) => void;
   addPaidExam: (examId: string) => void;
   clearCart: () => void;
@@ -57,17 +58,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('User has started a free practice attempt.');
   };
 
+  const addToCart = (examId: string) => {
+    setCart(prev => [...new Set([...prev, examId])]);
+  };
+
   const removeFromCart = (examId: string) => {
     setCart(prev => prev.filter(id => id !== examId));
   };
 
   const addPaidExam = (examId: string) => {
-    setPaidExamIds(prev => {
-        if (prev.includes(examId)) {
-            return prev;
-        }
-        return [...prev, examId];
-    });
+    setPaidExamIds(prev => [...new Set([...prev, examId])]);
   };
 
   const clearCart = () => {
@@ -75,7 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
+    <AuthContext.Provider value={{ user, paidExamIds, cart, loginWithToken, logout, useFreeAttempt, addToCart, removeFromCart, addPaidExam, clearCart }}>
       {children}
     </AuthContext.Provider>
   );

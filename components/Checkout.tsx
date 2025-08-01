@@ -26,18 +26,18 @@ const Checkout: React.FC = () => {
 
     const total = subtotal - (subtotal * discount);
 
-const handleApplyCoupon = (coupon) => {
-    if (coupon.toUpperCase() === 'SAVE10') {
-        setDiscount(0.10); // 10% discount
-        toast.success('10% discount applied!');
-    } else if (coupon.toUpperCase() === 'FREE100') {
-        setDiscount(1.0); // 100% discount
-        toast.success('100% discount applied!');
-    } else {
-        setDiscount(0); // No discount for invalid coupon
-        toast.error('Invalid coupon code.');
-    }
-};
+    const handleApplyCoupon = () => {
+        if (coupon.toUpperCase() === 'SAVE10') {
+            setDiscount(0.10); // 10% discount
+            toast.success('10% discount applied!');
+        } else if (coupon.toUpperCase() === 'FREE100') {
+            setDiscount(1.0); // 100% discount
+            toast.success('100% discount applied!');
+        } else {
+            setDiscount(0); // No discount for invalid coupon
+            toast.error('Invalid coupon code.');
+        }
+    };
 
     const handleCheckout = () => {
         if(!user) return;
