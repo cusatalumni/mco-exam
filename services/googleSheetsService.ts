@@ -2,6 +2,7 @@
 
 import type { User, Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory } from '../types';
 import { logoBase64 } from '../assets/logo';
+import { signatureBase64 } from '../assets/signature';
 
 
 const AI_EXAM_TOPICS = [
@@ -124,10 +125,9 @@ let mockDb: {
                     id: 'cert-mco-1',
                     title: 'Medical Coding Proficiency',
                     body: 'For successfully demonstrating proficiency in medical coding, including mastery of ICD-10-CM, CPT, HCPCS Level II, and coding guidelines through the completion of a comprehensive Examination with a score of {finalScore}%. This achievement reflects dedication to excellence in medical coding and preparedness for professional certification.',
-                    signature1Name: 'Dr. Amelia Reed',
-                    signature1Title: 'Program Director',
-                    signature2Name: 'B. Manoj',
-                    signature2Title: 'Chief Instructor'
+                    signatureName: 'Dr. Amelia Reed',
+                    signatureTitle: 'Program Director',
+                    signatureImage: signatureBase64,
                 }
             ]
         }

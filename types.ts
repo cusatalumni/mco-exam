@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -55,10 +56,9 @@ export interface CertificateTemplate {
     id: string;
     title: string;
     body: string;
-    signature1Name: string;
-    signature1Title: string;
-    signature2Name: string;
-    signature2Title: string;
+    signatureName: string;
+    signatureTitle: string;
+    signatureImage: string; // base64 string
 }
 
 export interface RecommendedBook {

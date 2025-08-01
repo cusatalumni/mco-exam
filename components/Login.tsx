@@ -1,64 +1,46 @@
-
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
 
 // This component now handles the auth callback from the external site.
 const Login: React.FC = () => {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { loginWithToken } = useAuth();
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        const redirectPath = searchParams.get('redirect_to') || '/dashboard';
+        // For a HashRouter, parameters are in the hash, not search.
+        const hash = window.location.hash;
+        const params = new URLSearchParams(hash.split('?')[1] || '');
+        const token = params.get('token');
+        const redirectTo = params.get('redirect_to');
 
         if (token) {
             try {
-                // This component is now responsible for the entire post-login flow.
                 loginWithToken(token);
                 toast.success('Logged in successfully!');
-                
-                // Navigate away immediately, replacing this auth page in history.
-                // This prevents the user from being "stuck" on the login page.
-                navigate(redirectPath, { replace: true });
-
-            } catch (err: any) {
-                const errorMessage = err.message || 'Invalid login token. Please try again.';
-                toast.error(errorMessage);
-                setError(errorMessage);
-                // Redirect home on error after a delay
-                setTimeout(() => navigate('/', { replace: true }), 3000);
+                // Decode the component before navigating
+                const destination = redirectTo ? decodeURIComponent(redirectTo) : '/dashboard';
+                navigate(destination, { replace: true });
+            } catch (error: any) {
+                toast.error(error.message || 'Invalid login token. Please try again.');
+                console.error("Token processing error:", error);
+                navigate('/', { replace: true });
             }
         } else {
-            const errorMessage = 'Login token not found in URL.';
-            toast.error(errorMessage);
-            setError(errorMessage);
-            // Redirect home on error after a delay
-            setTimeout(() => navigate('/', { replace: true }), 3000);
+            // This case might happen if a user lands on /auth directly.
+            toast.error('Login token not found. Redirecting to home.');
+            navigate('/', { replace: true });
         }
-        // The dependency array ensures this runs only once when the component mounts.
-    }, [searchParams, loginWithToken, navigate]);
+    }, [loginWithToken, navigate]);
 
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg text-center">
-                {error ? (
-                    <>
-                        <h2 className="text-2xl font-bold text-red-600">Login Failed</h2>
-                        <p className="text-slate-500">{error}</p>
-                        <p className="text-slate-500 text-sm mt-4">Redirecting to homepage...</p>
-                    </>
-                ) : (
-                    <>
-                        <h2 className="text-2xl font-bold text-slate-900">Finalizing Login</h2>
-                        <Spinner />
-                        <p className="text-slate-500">Please wait while we securely log you in...</p>
-                    </>
-                )}
+                <h2 className="text-2xl font-bold text-slate-900">Finalizing Login</h2>
+                <Spinner />
+                <p className="text-slate-500">Please wait while we securely log you in...</p>
             </div>
         </div>
     );
