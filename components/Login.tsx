@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -14,18 +15,13 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         const token = searchParams.get('token');
-        const redirectPath = searchParams.get('redirect_to') || '/dashboard';
 
         if (token) {
             try {
-                // This component is now responsible for the entire post-login flow.
+                // This component's only job is to process the token.
+                // It does NOT navigate. The App component will handle navigation
+                // in response to the user state changing. This fixes the race condition.
                 loginWithToken(token);
-                toast.success('Logged in successfully!');
-                
-                // Navigate away immediately, replacing this auth page in history.
-                // This prevents the user from being "stuck" on the login page.
-                navigate(redirectPath, { replace: true });
-
             } catch (err: any) {
                 const errorMessage = err.message || 'Invalid login token. Please try again.';
                 toast.error(errorMessage);
@@ -40,7 +36,6 @@ const Login: React.FC = () => {
             // Redirect home on error after a delay
             setTimeout(() => navigate('/', { replace: true }), 3000);
         }
-        // The dependency array ensures this runs only once when the component mounts.
     }, [searchParams, loginWithToken, navigate]);
 
     return (

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
 import type { User } from '../types';
 
 // The expected structure of the decoded JWT from WordPress
@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [paidExamIds, setPaidExamIds] = useState<string[]>([]);
   const [cart, setCart] = useState<string[]>([]);
 
-  const loginWithToken = (token: string) => {
+  const loginWithToken = useCallback((token: string) => {
     // In a real app, you would use a library like 'jwt-decode' and verify the signature.
     // For this demo, we'll assume the token is a base64 encoded JSON string.
     try {
@@ -42,37 +42,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // re-throw to be caught in the callback component
         throw new Error("Invalid authentication token.");
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setPaidExamIds([]);
     setCart([]);
     // The redirect will be handled in the Header component
-  };
+  }, []);
 
-  const useFreeAttempt = () => {
+  const useFreeAttempt = useCallback(() => {
     // This is a placeholder. In a real application, this could be used
     // to track or limit the number of free attempts a user has.
     console.log('User has started a free practice attempt.');
-  };
+  }, []);
 
-  const removeFromCart = (examId: string) => {
+  const removeFromCart = useCallback((examId: string) => {
     setCart(prev => prev.filter(id => id !== examId));
-  };
+  }, []);
 
-  const addPaidExam = (examId: string) => {
+  const addPaidExam = useCallback((examId: string) => {
     setPaidExamIds(prev => {
         if (prev.includes(examId)) {
             return prev;
         }
         return [...prev, examId];
     });
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
