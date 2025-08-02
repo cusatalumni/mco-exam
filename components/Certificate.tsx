@@ -9,6 +9,7 @@ import Spinner from './Spinner';
 import { Download, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { signatureBase64 } from '../assets/signature';
 
 const Watermark: React.FC = () => (
     <div className="absolute inset-0 grid grid-cols-3 grid-rows-6 gap-4 pointer-events-none overflow-hidden">
@@ -147,11 +148,11 @@ const Certificate: React.FC = () => {
                     <div className="pt-4 mt-auto">
                          <div className="flex justify-center items-center w-full">
                             <div className="text-center w-72">
-                                <img 
-                                    src={template.signatureImage} 
-                                    alt={`${template.signatureName} Signature`}
-                                    className="h-16 mx-auto object-contain mb-2"
-                                />
+                               <img 
+  src={signatureBase64} 
+  alt="DR. Amelia Reed Signature"
+  className="h-16 mx-auto object-contain mb-2"
+/>
                                 <div className="border-t border-slate-400 pt-2">
                                     <p className="text-sm text-slate-700 tracking-wider">
                                         <strong>{template.signatureName}</strong>
