@@ -176,4 +176,4 @@ const Certificate: React.FC = () => {
     );
 };
 
-export default Certificate;s
+export default Certificate;
