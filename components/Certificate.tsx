@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -10,6 +9,7 @@ import Spinner from './Spinner';
 import { Download, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { signatureBase64 } from '../assets/signature';
 
 const Watermark: React.FC = () => (
     <div className="absolute inset-0 grid grid-cols-3 grid-rows-6 gap-4 pointer-events-none overflow-hidden">
@@ -145,18 +145,20 @@ const Certificate: React.FC = () => {
                         <p className="text-base text-slate-700 max-w-3xl leading-relaxed" dangerouslySetInnerHTML={{ __html: bodyText }} />
                     </div>
                     
-                    <div className="pt-4 mt-auto">
-                        <div className="flex justify-center items-center w-full">
+                    <div className="pt-4">
+                        <div className="flex justify-around items-end w-full mb-6">
                             <div className="text-center">
-                                <img src={template.signatureImage} alt={`${template.signatureName}'s signature`} className="h-16 mx-auto mb-1"/>
-                                <div className="border-t border-slate-400 pt-2 px-8">
-                                    <p className="font-bold text-slate-800">{template.signatureName}</p>
-                                    <p className="text-sm text-slate-600">{template.signatureTitle}</p>
-                                </div>
+                                <img src={signatureBase64} alt="Signature" className="h-16 mx-auto" />
+                                <p className="text-3xl font-script text-slate-700">{template.signature1Name}</p>
+                                <p className="text-sm text-slate-700 border-t border-slate-400 mt-2 pt-2 tracking-wider">{template.signature1Title}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-3xl font-script text-slate-700">{template.signature2Name}</p>
+                                <p className="text-sm text-slate-700 border-t border-slate-400 mt-2 pt-2 tracking-wider">{template.signature2Title}</p>
                             </div>
                         </div>
 
-                        <div className="w-full flex justify-between text-xs text-slate-500 pt-4 mt-8 border-t border-slate-300">
+                        <div className="w-full flex justify-between text-xs text-slate-500 pt-2 border-t border-slate-300">
                             <span>Certificate No: <strong>{certData.certificateNumber}</strong></span>
                             <span>Date of Issue: <strong>{certData.date}</strong></span>
                         </div>

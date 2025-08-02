@@ -2,9 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { LogOut, UserCircle, LogIn } from 'lucide-react';
-
-const DUMMY_TOKEN = 'eyJ1c2VyIjp7ImlkIjoic2ltdWxhdGVkLXVzZXIiLCJuYW1lIjoiRGVtbyBVc2VyIiwiZW1haWwiOiJkZW1vQGV4YW1wbGUuY29tIn0sInBhaWRFeGFtSWRzIjpbImV4YW0tY3BjLWNlcnQiLCJleGFtLWNjYS1jZXJ0Il19';
+import { LogOut, UserCircle, UserPlus, LogIn } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -63,13 +61,22 @@ const Header: React.FC = () => {
               </button>
             </>
           ) : (
-             <Link
-                to={`/auth?token=${DUMMY_TOKEN}`}
-                className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
-              >
-                <LogIn size={16} />
-                <span>Login</span>
-              </Link>
+             <div className="flex items-center space-x-2">
+                <a
+                    href="https://www.coding-online.net/wp-login.php"
+                    className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
+                >
+                    <LogIn size={16} />
+                    <span>Login</span>
+                </a>
+                <a
+                    href="https://www.coding-online.net/wp-login.php?action=register"
+                    className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                    >
+                    <UserPlus size={16} />
+                    <span>Register</span>
+                </a>
+             </div>
           )}
         </div>
       </div>

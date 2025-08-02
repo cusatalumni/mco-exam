@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 import type { User } from '../types';
 
 // The expected structure of the decoded JWT from WordPress
@@ -10,11 +10,10 @@ interface TokenPayload {
 interface AuthContextType {
   user: User | null;
   paidExamIds: string[];
-  cart: string[];
   loginWithToken: (token: string) => void;
   logout: () => void;
   useFreeAttempt: () => void;
-  addToCart: (examId: string) => void;
+  cart: string[];
   removeFromCart: (examId: string) => void;
   addPaidExam: (examId: string) => void;
   clearCart: () => void;
@@ -27,7 +26,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [paidExamIds, setPaidExamIds] = useState<string[]>([]);
   const [cart, setCart] = useState<string[]>([]);
 
-  const loginWithToken = useCallback((token: string) => {
+  const loginWithToken = (token: string) => {
     // In a real app, you would use a library like 'jwt-decode' and verify the signature.
     // For this demo, we'll assume the token is a base64 encoded JSON string.
     try {
@@ -43,39 +42,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // re-throw to be caught in the callback component
         throw new Error("Invalid authentication token.");
     }
-  }, []);
+  };
 
-  const logout = useCallback(() => {
+  const logout = () => {
     setUser(null);
     setPaidExamIds([]);
     setCart([]);
     // The redirect will be handled in the Header component
-  }, []);
+  };
 
-  const useFreeAttempt = useCallback(() => {
+  const useFreeAttempt = () => {
     // This is a placeholder. In a real application, this could be used
     // to track or limit the number of free attempts a user has.
     console.log('User has started a free practice attempt.');
-  }, []);
+  };
 
-  const addToCart = useCallback((examId: string) => {
-    setCart(prev => [...new Set([...prev, examId])]);
-  }, []);
-
-  const removeFromCart = useCallback((examId: string) => {
+  const removeFromCart = (examId: string) => {
     setCart(prev => prev.filter(id => id !== examId));
-  }, []);
+  };
 
-  const addPaidExam = useCallback((examId: string) => {
-    setPaidExamIds(prev => [...new Set([...prev, examId])]);
-  }, []);
+  const addPaidExam = (examId: string) => {
+    setPaidExamIds(prev => {
+        if (prev.includes(examId)) {
+            return prev;
+        }
+        return [...prev, examId];
+    });
+  };
 
-  const clearCart = useCallback(() => {
+  const clearCart = () => {
     setCart([]);
-  }, []);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, paidExamIds, cart, loginWithToken, logout, useFreeAttempt, addToCart, removeFromCart, addPaidExam, clearCart }}>
+    <AuthContext.Provider value={{ user, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
       {children}
     </AuthContext.Provider>
   );
