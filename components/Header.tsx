@@ -16,10 +16,8 @@ const Header: React.FC = () => {
 
   const headerLink = user ? "/dashboard" : "/";
   
-  // Construct the redirect URI for the custom login page.
-  // This points back to our app's auth callback handler.
-  const redirectUri = 'https://www.coding-online.net/#/auth';
-  const loginUrl = `https://www.coding-online.net/app-login.php?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  // The custom login page is a WordPress page with the slug 'exam-login' as defined in the PHP snippet
+  const loginUrl = `https://www.coding-online.net/exam-login/`;
 
 
   return (

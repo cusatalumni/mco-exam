@@ -20,6 +20,8 @@ const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, paidExamIds } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
+    
+    const loginUrl = `https://www.coding-online.net/exam-login/`;
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
@@ -63,7 +65,7 @@ const LandingPage: React.FC = () => {
                         </a>
                         <p className="mt-4 text-slate-500">
                             Already have an account?{' '}
-                            <a href="https://www.coding-online.net/wp-login.php" className="font-semibold text-cyan-600 hover:underline">
+                            <a href={loginUrl} className="font-semibold text-cyan-600 hover:underline">
                                 Log In
                             </a>
                         </p>
