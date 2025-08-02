@@ -12,11 +12,13 @@ const Login: React.FC = () => {
 
     useEffect(() => {
         const token = searchParams.get('token');
+        const redirectTo = searchParams.get('redirect_to') || '/dashboard';
+
         if (token) {
             try {
                 loginWithToken(token);
                 toast.success('Logged in successfully!');
-                navigate('/dashboard', { replace: true });
+                navigate(redirectTo, { replace: true });
             } catch (error: any) {
                 toast.error(error.message || 'Invalid login token. Please try again.');
                 console.error("Token processing error:", error);

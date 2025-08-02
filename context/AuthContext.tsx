@@ -22,8 +22,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [paidExamIds, setPaidExamIds] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+        const storedUser = sessionStorage.getItem('examUser');
+        return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+        console.error("Failed to parse user from sessionStorage", error);
+        return null;
+    }
+  });
+  const [paidExamIds, setPaidExamIds] = useState<string[]>(() => {
+      try {
+        const storedIds = sessionStorage.getItem('paidExamIds');
+        return storedIds ? JSON.parse(storedIds) : [];
+      } catch (error) {
+          console.error("Failed to parse paidExamIds from sessionStorage", error);
+          return [];
+      }
+  });
   const [cart, setCart] = useState<string[]>([]);
 
   const loginWithToken = (token: string) => {
@@ -34,11 +50,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (payload.user && payload.paidExamIds) {
             setUser(payload.user);
             setPaidExamIds(payload.paidExamIds);
+            sessionStorage.setItem('examUser', JSON.stringify(payload.user));
+            sessionStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
         } else {
             throw new Error("Invalid token payload structure.");
         }
     } catch(e) {
         console.error("Failed to decode or parse token:", e);
+        sessionStorage.removeItem('examUser');
+        sessionStorage.removeItem('paidExamIds');
         // re-throw to be caught in the callback component
         throw new Error("Invalid authentication token.");
     }
@@ -48,6 +68,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setPaidExamIds([]);
     setCart([]);
+    sessionStorage.removeItem('examUser');
+    sessionStorage.removeItem('paidExamIds');
     // The redirect will be handled in the Header component
   };
 
