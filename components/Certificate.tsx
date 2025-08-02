@@ -146,12 +146,12 @@ const Certificate: React.FC = () => {
                     
                     <div className="pt-4 mt-auto">
                          <div className="flex justify-center items-center w-full">
-                            <div className="text-center w-72">
-                                <img 
-                                    src={template.signatureImage} 
-                                    alt={`${template.signatureName} Signature`}
-                                    className="h-16 mx-auto object-contain mb-2"
-                                />
+                            <div className="text-center max-w-sm">
+                                                              <img src={signatureBase64} alt="Signature" className="h-16 mx-auto" />
+                                <p className="text-3xl font-script text-slate-700">{template.signature1Name}</p>
+                                <p className="text-sm text-slate-700 border-t border-slate-400 mt-2 pt-2 tracking-wider">{template.signature1Title}</p>
+                            </div>
+
                                 <div className="border-t border-slate-400 pt-2">
                                     <p className="text-sm text-slate-700 tracking-wider">
                                         <strong>{template.signatureName}</strong>
