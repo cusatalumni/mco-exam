@@ -1,5 +1,7 @@
 
 
+
+
 import type { User, Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory } from '../types';
 import { logoBase64 } from '../assets/logo';
 
@@ -33,34 +35,34 @@ const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
 const ALL_EXAMS: Exam[] = [
     // CPC
     { id: 'exam-cpc-practice', name: 'CPC Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-cpc-cert', name: 'CPC Certification Exam', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-cpc-cert', name: 'CPC Certification Exam', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/cpc/' },
     // CCA
     { id: 'exam-cca-practice', name: 'CCA Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-cca-cert', name: 'CCA Certification Exam', description: '', price: 24.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-cca-cert', name: 'CCA Certification Exam', description: '', price: 24.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/cca/' },
     // CCS
     { id: 'exam-ccs-practice', name: 'CCS Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-ccs-cert', name: 'CCS Certification Exam', description: '', price: 29.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-ccs-cert', name: 'CCS Certification Exam', description: '', price: 29.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/ccs/' },
     // Inpatient
     { id: 'exam-inpatient-practice', name: 'Inpatient Coding Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-inpatient-cert', name: 'Inpatient Coding Certification', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-inpatient-cert', name: 'Inpatient Coding Certification', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/inpatient-coding/' },
     // Outpatient
     { id: 'exam-outpatient-practice', name: 'Outpatient Coding Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-outpatient-cert', name: 'Outpatient Coding Certification', description: '', price: 14.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-outpatient-cert', name: 'Outpatient Coding Certification', description: '', price: 14.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/outpatient-coding/' },
     // Billing
     { id: 'exam-billing-practice', name: 'Medical Billing Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-billing-cert', name: 'Medical Billing Certification', description: '', price: 12.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-billing-cert', name: 'Medical Billing Certification', description: '', price: 12.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/medical-billing/' },
     // Risk
     { id: 'exam-risk-practice', name: 'Risk Adjustment Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-risk-cert', name: 'Risk Adjustment Certification', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-risk-cert', name: 'Risk Adjustment Certification', description: '', price: 19.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/risk-adjustment-coding/' },
     // Auditing
     { id: 'exam-auditing-practice', name: 'Medical Auditing Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-auditing-cert', name: 'Medical Auditing Certification', description: '', price: 21.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-auditing-cert', name: 'Medical Auditing Certification', description: '', price: 21.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/medical-auditing/' },
     // CPMA
     { id: 'exam-cpma-practice', name: 'CPMA Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-cpma-cert', name: 'CPMA Certification Exam', description: '', price: 22.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-cpma-cert', name: 'CPMA Certification Exam', description: '', price: 22.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/cpma/' },
     // ICD
     { id: 'exam-icd-practice', name: 'ICD-10-CM Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-icd-cert', name: 'ICD-10-CM Certification', description: '', price: 14.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-icd-cert', name: 'ICD-10-CM Certification', description: '', price: 14.99, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false, productUrl: '/product/icd-10-cm/' },
 ];
 
 // Map broader exams to the granular AI topics

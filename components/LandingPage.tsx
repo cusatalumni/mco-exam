@@ -22,6 +22,7 @@ const LandingPage: React.FC = () => {
     const { activeOrg, isInitializing } = useAppContext();
     
     const loginUrl = `https://www.coding-online.net/exam-login/`;
+    const baseUrl = `https://www.coding-online.net`;
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
@@ -103,6 +104,7 @@ const LandingPage: React.FC = () => {
                         if (!practiceExam || !certExam) return null;
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
+                        const purchaseUrl = certExam.productUrl ? `${baseUrl}${certExam.productUrl}` : baseUrl;
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
@@ -138,7 +140,7 @@ const LandingPage: React.FC = () => {
                                             </button>
                                         ) : (
                                             <a 
-                                                href="https://www.coding-online.net"
+                                                href={purchaseUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition"
