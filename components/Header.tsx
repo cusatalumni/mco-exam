@@ -15,6 +15,12 @@ const Header: React.FC = () => {
   };
 
   const headerLink = user ? "/dashboard" : "/";
+  
+  // Construct the redirect URI for the custom login page.
+  // This points back to our app's auth callback handler.
+  const redirectUri = 'https://www.coding-online.net/#/auth';
+  const loginUrl = `https://www.coding-online.net/app-login.php?redirect_uri=${encodeURIComponent(redirectUri)}`;
+
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -63,7 +69,7 @@ const Header: React.FC = () => {
           ) : (
              <div className="flex items-center space-x-2">
                 <a
-                    href="https://www.coding-online.net/wp-login.php"
+                    href={loginUrl}
                     className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
                 >
                     <LogIn size={16} />
