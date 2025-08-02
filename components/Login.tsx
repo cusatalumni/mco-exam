@@ -1,35 +1,57 @@
-import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
 
-// This component now handles the auth callback from the external site.
+// This component handles the auth callback from the external site.
 const Login: React.FC = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const { loginWithToken } = useAuth();
+    const { user, loginWithToken } = useAuth();
+    const [error, setError] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(true);
 
     useEffect(() => {
         const token = searchParams.get('token');
-        const redirectTo = searchParams.get('redirect_to') || '/dashboard';
-
-        if (token) {
+        
+        // Only process token if we don't have a user yet
+        if (token && !user) {
             try {
                 loginWithToken(token);
-                toast.success('Logged in successfully!');
-                navigate(redirectTo, { replace: true });
-            } catch (error: any) {
-                toast.error(error.message || 'Invalid login token. Please try again.');
-                console.error("Token processing error:", error);
-                navigate('/', { replace: true });
+                // The component will re-render when the `user` state from context updates.
+                // The navigation is now handled declaratively in the return statement.
+            } catch (e: any) {
+                const errorMessage = e.message || 'Invalid login token. Please try again.';
+                toast.error(errorMessage);
+                setError(errorMessage);
             }
-        } else {
-            toast.error('Login token not found.');
-            navigate('/', { replace: true });
+        } else if (!token && !user) {
+            const errorMessage = 'Login token not found.';
+            toast.error(errorMessage);
+            setError(errorMessage);
+        } else if (user) {
+            // User is already logged in, no need to process, just redirect.
+            setIsProcessing(false);
         }
-    }, [searchParams, loginWithToken, navigate]);
 
+    }, [searchParams, loginWithToken, user]);
+
+    // If there was an error during token processing, redirect to the home page.
+    if (error) {
+        return <Navigate to="/" replace />;
+    }
+
+    // Once the user object is available in the context (either from the token or existing session),
+    // redirect to the dashboard or the intended page.
+    if (user) {
+        const redirectTo = searchParams.get('redirect_to') || '/dashboard';
+        if (isProcessing) { // Only show toast on initial successful login
+             toast.success('Logged in successfully!');
+        }
+        return <Navigate to={redirectTo} replace />;
+    }
+
+    // While waiting for the token to be processed and user state to update, show a spinner.
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg text-center">
