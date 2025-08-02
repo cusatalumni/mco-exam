@@ -2,14 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from './AppContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { CertificateData } from '../types';
 import Spinner from './Spinner';
 import { Download, ArrowLeft } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { signatureBase64 } from '../assets/signature';
 
 const Watermark: React.FC = () => (
     <div className="absolute inset-0 grid grid-cols-3 grid-rows-6 gap-4 pointer-events-none overflow-hidden">
@@ -148,7 +147,6 @@ const Certificate: React.FC = () => {
                     <div className="pt-4">
                         <div className="flex justify-around items-end w-full mb-6">
                             <div className="text-center">
-                                <img src={signatureBase64} alt="Signature" className="h-16 mx-auto" />
                                 <p className="text-3xl font-script text-slate-700">{template.signature1Name}</p>
                                 <p className="text-sm text-slate-700 border-t border-slate-400 mt-2 pt-2 tracking-wider">{template.signature1Title}</p>
                             </div>
