@@ -2,12 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
 import { redis } from '../../services/redis';
 import { googleSheetsService } from '../../services/googleSheetsService';
-import type { UserAnswer, TestResult, User, Exam } from '../../types';
-
-interface TokenPayload {
-    user: User;
-    iat: number;
-}
+import type { UserAnswer, TestResult, Exam, TokenPayload } from '../../types';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {

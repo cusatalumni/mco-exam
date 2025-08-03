@@ -1,12 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
 import { redis } from '../../../services/redis';
-import type { TestResult, User } from '../../../types';
-
-interface TokenPayload {
-    user: User;
-    iat: number;
-}
+import type { TestResult, TokenPayload } from '../../../types';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'GET') {

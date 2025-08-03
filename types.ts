@@ -47,6 +47,15 @@ export interface CertificateData {
     template: CertificateTemplate;
 }
 
+// The structure of the JWT payload coming from the main site
+export interface TokenPayload {
+    user: User;
+    paidExamIds: string[];
+    iat?: number;
+    exp?: number;
+}
+
+
 // =================================================================
 // DYNAMIC CONFIGURATION TYPES
 // =================================================================

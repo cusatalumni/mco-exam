@@ -1,11 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import type { User } from '../types';
+import type { User, TokenPayload } from '../types';
 
-// The expected structure of the decoded JWT from WordPress
-interface TokenPayload {
-    user: User;
-    paidExamIds: string[];
-}
+// The expected structure of the decoded JWT from WordPress is now in types.ts
 
 interface AuthContextType {
   user: User | null;
