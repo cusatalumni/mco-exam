@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
-import { redis } from '@/services/redis';
-import type { TestResult, User } from '@/types';
+import { redis } from '../../../services/redis';
+import type { TestResult, User } from '../../../types';
 
 interface TokenPayload {
     user: User;
