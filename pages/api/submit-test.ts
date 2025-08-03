@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
-import { redis } from '../services/redis';
-import { googleSheetsService } from '../services/googleSheetsService';
-import type { UserAnswer, TestResult, User, Exam } from '../types';
+import { redis } from '@/services/redis';
+import { googleSheetsService } from '@/services/googleSheetsService';
+import type { UserAnswer, TestResult, User, Exam } from '@/types';
 
 interface TokenPayload {
     user: User;
