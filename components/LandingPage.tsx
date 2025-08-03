@@ -1,4 +1,5 @@
 
+
 import React, { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -112,8 +113,7 @@ const LandingPage: React.FC = () => {
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
                         
-                        // Use the explicit productUrl from the exam configuration.
-                        const purchaseUrl = certExam.productUrl ? `${baseUrl}/${certExam.productUrl}/` : '#';
+                        const purchaseUrl = certExam.productUrl ? `${baseUrl}/product/${certExam.productUrl}` : '#';
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
