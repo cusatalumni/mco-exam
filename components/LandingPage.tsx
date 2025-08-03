@@ -129,7 +129,7 @@ const LandingPage: React.FC = () => {
                                     <div className="text-center">
                                         <button 
                                             onClick={() => handleStartPractice(practiceExam.id)}
-                                            className="w-full flex justify-center items-center bg-slate-100 border border-slate-300 text-slate-700 font-bold py-3 px-4 rounded-lg hover:bg-slate-200 transition disabled:opacity-60"
+                                            className="w-full flex justify-center items-center bg-white border border-cyan-600 text-cyan-700 font-bold py-3 px-4 rounded-lg hover:bg-cyan-600 hover:text-white transition-colors duration-200 disabled:opacity-60"
                                             disabled={!user}
                                         >
                                             <PlayCircle size={18} className="mr-2" />
