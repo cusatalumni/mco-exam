@@ -141,6 +141,25 @@ let mockDb: {
 const allQuestionsCache = new Map<string, Question[]>();
 const categorizedQuestionsCache = new Map<string, Question[]>();
 
+const _getResultsFromStorage = (userId: string): TestResult[] => {
+    try {
+        const storedResults = localStorage.getItem(`results_${userId}`);
+        return storedResults ? JSON.parse(storedResults) : [];
+    } catch (e) {
+        console.error("Failed to parse results from localStorage", e);
+        return [];
+    }
+};
+
+const _saveResultsToStorage = (userId: string, results: TestResult[]): void => {
+    try {
+        localStorage.setItem(`results_${userId}`, JSON.stringify(results));
+    } catch (e) {
+        console.error("Failed to save results to localStorage", e);
+    }
+};
+
+
 const fetchAndParseAllQuestions = async (url: string): Promise<Question[]> => {
     if (allQuestionsCache.has(url)) {
         return allQuestionsCache.get(url)!;
@@ -229,49 +248,70 @@ export const googleSheetsService = {
         return shuffled.slice(0, Math.min(examConfig.numberOfQuestions, shuffled.length));
     },
 
-    submitTest: async (token: string, orgId: string, examId: string, answers: UserAnswer[]): Promise<TestResult> => {
-        const response = await fetch(`/api/submit-test`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ orgId, examId, answers }),
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Failed to submit test.");
+    submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[]): Promise<TestResult> => {
+        await googleSheetsService.initializeAndCategorizeExams();
+        const examConfig = googleSheetsService.getExamConfig(orgId, examId);
+        if (!examConfig) {
+            throw new Error("Exam configuration not found");
         }
-        return response.json();
+        const questionPool = await googleSheetsService.getQuestions(examConfig);
+
+        let correctCount = 0;
+        const review: TestResult['review'] = [];
+
+        answers.forEach(userAnswer => {
+            const question = questionPool.find(q => q.id === userAnswer.questionId);
+            if (question) {
+                if ((userAnswer.answer + 1) === question.correctAnswer) {
+                    correctCount++;
+                }
+                review.push({
+                    questionId: question.id,
+                    question: question.question,
+                    options: question.options,
+                    userAnswer: userAnswer.answer,
+                    correctAnswer: question.correctAnswer - 1,
+                });
+            }
+        });
+
+        const totalQuestions = answers.length;
+        const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
+        const newResult: TestResult = {
+            testId: `test-${Date.now()}`,
+            userId: user.id,
+            examId,
+            answers,
+            score: parseFloat(score.toFixed(2)),
+            correctCount,
+            totalQuestions,
+            timestamp: Date.now(),
+            review,
+        };
+
+        const allUserResults = _getResultsFromStorage(user.id);
+        allUserResults.push(newResult);
+        _saveResultsToStorage(user.id, allUserResults);
+
+        return Promise.resolve(newResult);
     },
     
-    getTestResult: async(token: string, testId: string): Promise<TestResult | null> => {
-        const response = await fetch(`/api/results/${testId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-            if (response.status === 404) return null;
-            const error = await response.json();
-            throw new Error(error.message || "Failed to fetch result.");
-        }
-        return response.json();
+    getTestResult: async(user: User, testId: string): Promise<TestResult | null> => {
+        const allUserResults = _getResultsFromStorage(user.id);
+        const result = allUserResults.find(r => r.testId === testId && r.userId === user.id);
+        return Promise.resolve(result || null);
     },
     
-    getTestResultsForUser: async(token: string): Promise<TestResult[]> => {
-        const response = await fetch('/api/results', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Failed to fetch results.");
-        }
-        return response.json();
+    getTestResultsForUser: async(user: User): Promise<TestResult[]> => {
+        const results = _getResultsFromStorage(user.id);
+        results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        return Promise.resolve(results);
     },
 
-    getCertificateData: async (token: string, testId: string, user: User, orgId: string): Promise<CertificateData | null> => {
+    getCertificateData: async (user: User, testId: string, orgId: string): Promise<CertificateData | null> => {
         if (testId === 'sample') return googleSheetsService.getSampleCertificateData(user);
 
-        const result = await googleSheetsService.getTestResult(token, testId);
+        const result = await googleSheetsService.getTestResult(user, testId);
         const organization = mockDb.organizations.find(o => o.id === orgId);
         
         if (!result || !organization) return null;

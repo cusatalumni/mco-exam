@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -12,7 +13,7 @@ import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
 const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
-  const { user, useFreeAttempt, token } = useAuth();
+  const { user, useFreeAttempt } = useAuth();
   const { activeOrg } = useAppContext();
 
   const [examConfig, setExamConfig] = useState<Exam | null>(null);
@@ -84,7 +85,7 @@ const Test: React.FC = () => {
         return;
     }
     
-    if(!user || !activeOrg || !examId || !token) {
+    if(!user || !activeOrg || !examId) {
         toast.error("Cannot submit: user or exam context is missing.");
         navigate('/');
         return;
@@ -97,7 +98,7 @@ const Test: React.FC = () => {
             answer,
         }));
         
-        const result = await googleSheetsService.submitTest(token, activeOrg.id, examId, userAnswers);
+        const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers);
         toast.success("Test submitted successfully!");
         navigate(`/results/${result.testId}`);
 
