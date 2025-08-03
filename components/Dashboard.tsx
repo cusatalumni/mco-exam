@@ -253,8 +253,8 @@ const Dashboard: React.FC = () => {
                                {isTesting ? <Spinner /> : <Database size={16} />}
                                {isTesting ? 'Testing...' : 'Test DB Connection'}
                             </button>
+// app/dashboard/page.tsx  (or pages/dashboard.tsx)
 
-// app/dashboard/page.tsx
 import TestRedisButton from './TestRedisButton';
 
 export default function DashboardPage() {
@@ -264,6 +264,7 @@ export default function DashboardPage() {
       <TestRedisButton />
     </div>
   );
+}
 }
                 </div>
             </div>
