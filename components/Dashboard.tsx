@@ -254,40 +254,17 @@ const Dashboard: React.FC = () => {
                                {isTesting ? 'Testing...' : 'Test DB Connection'}
                             </button>
 
-'use client';
+// app/dashboard/page.tsx
+import TestRedisButton from './TestRedisButton';
 
-import { useState } from 'react';
-
-export default function TestRedisButton() {
-  const [result, setResult] = useState<string | null>(null);
-
-  const handleTest = async () => {
-    setResult('Testing...');
-    const res = await fetch('/api/test-redis');
-    const data = await res.json();
-
-    if (data.success) {
-      setResult(`✅ Redis returned: ${data.value}`);
-    } else {
-      setResult(`❌ Error: ${data.error}`);
-    }
-  };
-
+export default function DashboardPage() {
   return (
-    <div className="mt-6">
-      <button
-        onClick={handleTest}
-        className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded"
-      >
-        Test DB Connection
-      </button>
-      {result && <p className="mt-2 text-slate-700">{result}</p>}
+    <div className="p-10">
+      <h1 className="text-3xl mb-6">Dashboard</h1>
+      <TestRedisButton />
     </div>
   );
 }
-
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
