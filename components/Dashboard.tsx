@@ -253,7 +253,11 @@ const Dashboard: React.FC = () => {
                                {isTesting ? <Spinner /> : <Database size={16} />}
                                {isTesting ? 'Testing...' : 'Test DB Connection'}
                             </button>
-// app/dashboard/page.tsx  (or pages/dashboard.tsx)
+
+
+
+
+'use client';  // ✅ ONLY if this is a Client Component
 
 import TestRedisButton from './TestRedisButton';
 
