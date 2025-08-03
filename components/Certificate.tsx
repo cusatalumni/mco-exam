@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -26,7 +28,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => (
 const Certificate: React.FC = () => {
     const { testId = 'sample' } = useParams<{ testId?: string }>();
     const navigate = useNavigate();
-    const { user, token } = useAuth();
+    const { user } = useAuth();
     const { activeOrg } = useAppContext();
     const [certData, setCertData] = useState<CertificateData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,14 +42,10 @@ const Certificate: React.FC = () => {
                 navigate('/dashboard');
                 return;
             }
-            if (testId !== 'sample' && !token) {
-                toast.error("Authentication required to view certificate.");
-                navigate('/dashboard');
-                return;
-            }
+            
             setIsLoading(true);
             try {
-                const data = await googleSheetsService.getCertificateData(token || '', testId, user, activeOrg.id);
+                const data = await googleSheetsService.getCertificateData(user, testId, activeOrg.id);
                 if (data) {
                     setCertData(data);
                 } else {
@@ -63,7 +61,7 @@ const Certificate: React.FC = () => {
         };
 
         fetchCertificateData();
-    }, [testId, user, token, activeOrg, navigate]);
+    }, [testId, user, activeOrg, navigate]);
 
     const handleDownload = async () => {
         if (!certificateRef.current) return;

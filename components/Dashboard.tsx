@@ -6,25 +6,24 @@ import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
 import Spinner from './Spinner';
-import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Database } from 'lucide-react';
+import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { user, paidExamIds, token } = useAuth();
+    const { user, paidExamIds } = useAuth();
     const { activeOrg } = useAppContext();
     const [results, setResults] = useState<TestResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isTesting, setIsTesting] = useState(false);
     const [stats, setStats] = useState({ avgScore: 0, bestScore: 0, examsTaken: 0 });
 
     useEffect(() => {
-        if (!user || !token) return;
+        if (!user) return;
         const fetchResults = async () => {
             setIsLoading(true);
             try {
-                const userResults = await googleSheetsService.getTestResultsForUser(token);
+                const userResults = await googleSheetsService.getTestResultsForUser(user);
                 setResults(userResults);
                 
                 if (userResults.length > 0) {
@@ -47,26 +46,7 @@ const Dashboard: React.FC = () => {
             }
         };
         fetchResults();
-    }, [user, token]);
-
-    const handleTestConnection = async () => {
-        setIsTesting(true);
-        const toastId = toast.loading('Testing database connection...');
-        try {
-            const response = await fetch('/api/health');
-            const data = await response.json();
-            if (response.ok) {
-                toast.success(data.message, { id: toastId });
-            } else {
-                toast.error(`Error: ${data.message}`, { id: toastId });
-            }
-        } catch (error) {
-            toast.error('Failed to perform health check.', { id: toastId });
-        } finally {
-            setIsTesting(false);
-        }
-    };
-
+    }, [user]);
 
     if (isLoading || !activeOrg) {
         return <div className="flex flex-col items-center justify-center h-64"><Spinner /><p className="mt-4">Loading your dashboard...</p></div>;
@@ -247,17 +227,9 @@ const Dashboard: React.FC = () => {
                             <button onClick={() => navigate('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
                                <FileText size={16} /> Preview Certificate
                             </button>
-
-
-                            <button onClick={handleTestConnection} disabled={isTesting} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-                               {isTesting ? <Spinner /> : <Database size={16} />}
-                               {isTesting ? 'Testing...' : 'Test DB Connection'}
-                            </button>
-
-
-
-
-
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
