@@ -1,8 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import type { User, TokenPayload } from '../types';
 
-// The expected structure of the decoded JWT from WordPress is now in types.ts
-
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -10,10 +8,6 @@ interface AuthContextType {
   loginWithToken: (token: string) => void;
   logout: () => void;
   useFreeAttempt: () => void;
-  cart: string[];
-  removeFromCart: (examId: string) => void;
-  addPaidExam: (examId: string) => void;
-  clearCart: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,26 +15,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
-        const storedUser = sessionStorage.getItem('examUser');
+        const storedUser = localStorage.getItem('examUser');
         return storedUser ? JSON.parse(storedUser) : null;
     } catch (error) {
-        console.error("Failed to parse user from sessionStorage", error);
+        console.error("Failed to parse user from localStorage", error);
         return null;
     }
   });
   const [token, setToken] = useState<string | null>(() => {
-    return sessionStorage.getItem('authToken');
+    return localStorage.getItem('authToken');
   });
   const [paidExamIds, setPaidExamIds] = useState<string[]>(() => {
       try {
-        const storedIds = sessionStorage.getItem('paidExamIds');
+        const storedIds = localStorage.getItem('paidExamIds');
         return storedIds ? JSON.parse(storedIds) : [];
       } catch (error) {
-          console.error("Failed to parse paidExamIds from sessionStorage", error);
+          console.error("Failed to parse paidExamIds from localStorage", error);
           return [];
       }
   });
-  const [cart, setCart] = useState<string[]>([]);
 
   const loginWithToken = (jwtToken: string) => {
     try {
@@ -63,17 +56,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(payload.user);
             setPaidExamIds(payload.paidExamIds);
             setToken(jwtToken);
-            sessionStorage.setItem('examUser', JSON.stringify(payload.user));
-            sessionStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
-            sessionStorage.setItem('authToken', jwtToken);
+            localStorage.setItem('examUser', JSON.stringify(payload.user));
+            localStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
+            localStorage.setItem('authToken', jwtToken);
         } else {
             throw new Error("Invalid token payload structure.");
         }
     } catch(e) {
         console.error("Failed to decode or parse token:", e);
-        sessionStorage.removeItem('examUser');
-        sessionStorage.removeItem('paidExamIds');
-        sessionStorage.removeItem('authToken');
+        localStorage.removeItem('examUser');
+        localStorage.removeItem('paidExamIds');
+        localStorage.removeItem('authToken');
         // re-throw to be caught in the callback component
         throw new Error("Invalid authentication token.");
     }
@@ -83,10 +76,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setPaidExamIds([]);
     setToken(null);
-    setCart([]);
-    sessionStorage.removeItem('examUser');
-    sessionStorage.removeItem('paidExamIds');
-    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('examUser');
+    localStorage.removeItem('paidExamIds');
+    localStorage.removeItem('authToken');
     // The redirect will be handled in the Header component
   };
 
@@ -96,27 +88,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('User has started a free practice attempt.');
   };
 
-  const removeFromCart = (examId: string) => {
-    setCart(prev => prev.filter(id => id !== examId));
-  };
-
-  const addPaidExam = (examId: string) => {
-    setPaidExamIds(prev => {
-        if (prev.includes(examId)) {
-            return prev;
-        }
-        const newPaidExamIds = [...prev, examId];
-        sessionStorage.setItem('paidExamIds', JSON.stringify(newPaidExamIds));
-        return newPaidExamIds;
-    });
-  };
-
-  const clearCart = () => {
-    setCart([]);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
+    <AuthContext.Provider value={{ user, token, paidExamIds, loginWithToken, logout, useFreeAttempt }}>
       {children}
     </AuthContext.Provider>
   );
