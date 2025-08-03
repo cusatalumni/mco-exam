@@ -11,7 +11,7 @@ import { Check, X, FileDown, BookUp } from 'lucide-react';
 const Results: React.FC = () => {
     const { testId } = useParams<{ testId: string }>();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const { activeOrg } = useAppContext();
     
     const [result, setResult] = useState<TestResult | null>(null);
@@ -19,7 +19,7 @@ const Results: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!testId || !user || !activeOrg) {
+        if (!testId || !user || !activeOrg || !token) {
             toast.error("Required data is missing.");
             navigate('/dashboard');
             return;
@@ -28,7 +28,7 @@ const Results: React.FC = () => {
         const fetchResultAndExam = async () => {
             setIsLoading(true);
             try {
-                const foundResult = await googleSheetsService.getTestResult(testId, user.id);
+                const foundResult = await googleSheetsService.getTestResult(token, testId);
                 if (foundResult) {
                     setResult(foundResult);
                     const examConfig = googleSheetsService.getExamConfig(activeOrg.id, foundResult.examId);
@@ -50,7 +50,7 @@ const Results: React.FC = () => {
             }
         };
         fetchResultAndExam();
-    }, [testId, user, activeOrg, navigate]);
+    }, [testId, user, token, activeOrg, navigate]);
     
     const getGeoAffiliateLink = (book: RecommendedBook): { url: string; domainName: string } => {
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

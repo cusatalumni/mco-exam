@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,18 +12,18 @@ import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { user, paidExamIds } = useAuth();
+    const { user, paidExamIds, token } = useAuth();
     const { activeOrg } = useAppContext();
     const [results, setResults] = useState<TestResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState({ avgScore: 0, bestScore: 0, examsTaken: 0 });
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !token) return;
         const fetchResults = async () => {
             setIsLoading(true);
             try {
-                const userResults = await googleSheetsService.getTestResultsForUser(user.id);
+                const userResults = await googleSheetsService.getTestResultsForUser(token);
                 setResults(userResults);
                 
                 if (userResults.length > 0) {
@@ -45,7 +46,7 @@ const Dashboard: React.FC = () => {
             }
         };
         fetchResults();
-    }, [user]);
+    }, [user, token]);
 
     if (isLoading || !activeOrg) {
         return <div className="flex flex-col items-center justify-center h-64"><Spinner /><p className="mt-4">Loading your dashboard...</p></div>;

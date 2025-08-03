@@ -9,6 +9,7 @@ interface TokenPayload {
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   paidExamIds: string[];
   loginWithToken: (token: string) => void;
   logout: () => void;
@@ -31,6 +32,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return null;
     }
   });
+  const [token, setToken] = useState<string | null>(() => {
+    return sessionStorage.getItem('authToken');
+  });
   const [paidExamIds, setPaidExamIds] = useState<string[]>(() => {
       try {
         const storedIds = sessionStorage.getItem('paidExamIds');
@@ -42,16 +46,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
   const [cart, setCart] = useState<string[]>([]);
 
-  const loginWithToken = (token: string) => {
-    // In a real app, you would use a library like 'jwt-decode' and verify the signature.
-    // For this demo, we'll assume the token is a base64 encoded JSON string.
+  const loginWithToken = (jwtToken: string) => {
     try {
-        const payload: TokenPayload = JSON.parse(atob(token));
+        // A proper JWT has three parts separated by dots.
+        const parts = jwtToken.split('.');
+        if (parts.length !== 3) {
+            throw new Error("Invalid JWT format.");
+        }
+        const payloadBase64Url = parts[1];
+        // The payload is base64url encoded. We need to replace URL-specific characters
+        // and add padding if necessary before using atob.
+        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedPayload = decodeURIComponent(atob(payloadBase64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload: TokenPayload = JSON.parse(decodedPayload);
+        
         if (payload.user && payload.paidExamIds) {
             setUser(payload.user);
             setPaidExamIds(payload.paidExamIds);
+            setToken(jwtToken);
             sessionStorage.setItem('examUser', JSON.stringify(payload.user));
             sessionStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
+            sessionStorage.setItem('authToken', jwtToken);
         } else {
             throw new Error("Invalid token payload structure.");
         }
@@ -59,6 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error("Failed to decode or parse token:", e);
         sessionStorage.removeItem('examUser');
         sessionStorage.removeItem('paidExamIds');
+        sessionStorage.removeItem('authToken');
         // re-throw to be caught in the callback component
         throw new Error("Invalid authentication token.");
     }
@@ -67,9 +86,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => {
     setUser(null);
     setPaidExamIds([]);
+    setToken(null);
     setCart([]);
     sessionStorage.removeItem('examUser');
     sessionStorage.removeItem('paidExamIds');
+    sessionStorage.removeItem('authToken');
     // The redirect will be handled in the Header component
   };
 
@@ -88,7 +109,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (prev.includes(examId)) {
             return prev;
         }
-        return [...prev, examId];
+        const newPaidExamIds = [...prev, examId];
+        sessionStorage.setItem('paidExamIds', JSON.stringify(newPaidExamIds));
+        return newPaidExamIds;
     });
   };
 
@@ -97,7 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
+    <AuthContext.Provider value={{ user, token, paidExamIds, loginWithToken, logout, cart, removeFromCart, addPaidExam, clearCart, useFreeAttempt }}>
       {children}
     </AuthContext.Provider>
   );

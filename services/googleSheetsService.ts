@@ -1,8 +1,4 @@
-
-
-
-
-import type { User, Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory } from '../types';
+import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory, User } from '../types';
 import { logoBase64 } from '../assets/logo';
 
 
@@ -93,14 +89,8 @@ const EXAM_TO_TOPIC_MAPPING: { [examId: string]: string[] } = {
 const MASTER_QUESTION_SOURCE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSMFALpdYSsjcnERF1wOpcnIT2qrRAZoyJYzc5T8_xq_Q3eQjAJJH30iDMMlO2tKhIYYKdOVBiPqF3Y/pub?gid=743667979&single=true&output=csv';
 
 let mockDb: {
-    users: User[];
-    testResults: TestResult[];
     organizations: Organization[];
 } = {
-    users: [
-        { id: 'user-001', name: 'John Doe', email: 'john@example.com' }
-    ],
-    testResults: [],
     organizations: [
         {
             id: 'org-mco',
@@ -185,17 +175,12 @@ const fetchAndParseAllQuestions = async (url: string): Promise<Question[]> => {
     }
 };
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
 export const googleSheetsService = {
     initializeAndCategorizeExams: async (): Promise<void> => {
         if (categorizedQuestionsCache.size > 0) return; // Already initialized
         
         const allQuestions = await fetchAndParseAllQuestions(MASTER_QUESTION_SOURCE_URL);
 
-        // Since AI categorization is removed for speed, we populate all topics
-        // with all available questions. The getQuestions method will then handle
-        // shuffling and selecting the correct number for each specific exam.
         AI_EXAM_TOPICS.forEach(cat => {
              categorizedQuestionsCache.set(cat.id, allQuestions);
         });
@@ -222,7 +207,6 @@ export const googleSheetsService = {
             }
         });
         
-        // Remove duplicates in case a question is in multiple topics
         const uniqueQuestions = Array.from(new Map(combinedQuestions.map(q => [q.id, q])).values());
 
         if (uniqueQuestions.length === 0) {
@@ -233,72 +217,49 @@ export const googleSheetsService = {
         return shuffled.slice(0, Math.min(examConfig.numberOfQuestions, shuffled.length));
     },
 
-    submitTest: async (userId: string, orgId: string, examId: string, answers: UserAnswer[]): Promise<TestResult> => {
-        await delay(1000);
-        const examConfig = googleSheetsService.getExamConfig(orgId, examId);
-        if (!examConfig) throw new Error("Invalid exam configuration.");
-        
-        const topicIds = EXAM_TO_TOPIC_MAPPING[examConfig.id];
-        if (!topicIds) throw new Error("Could not find topics to grade the test.");
-        
-        let combinedQuestions: Question[] = [];
-         topicIds.forEach(topicId => {
-            const questionsForTopic = categorizedQuestionsCache.get(topicId);
-            if(questionsForTopic) {
-                combinedQuestions.push(...questionsForTopic);
-            }
+    submitTest: async (token: string, orgId: string, examId: string, answers: UserAnswer[]): Promise<TestResult> => {
+        const response = await fetch(`/api/submit-test`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ orgId, examId, answers }),
         });
-        const questionPool = Array.from(new Map(combinedQuestions.map(q => [q.id, q])).values());
-        
-        if (!questionPool || questionPool.length === 0) throw new Error("Could not retrieve questions to grade the test.");
-        
-        let correctCount = 0;
-        const review: TestResult['review'] = [];
-
-        answers.forEach(userAnswer => {
-            const question = questionPool.find(q => q.id === userAnswer.questionId);
-            if (question) {
-                if ((userAnswer.answer + 1) === question.correctAnswer) correctCount++;
-                review.push({
-                    questionId: question.id,
-                    question: question.question,
-                    options: question.options,
-                    userAnswer: userAnswer.answer,
-                    correctAnswer: question.correctAnswer - 1
-                });
-            }
-        });
-
-        const totalQuestions = answers.length;
-        const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
-        const newResult: TestResult = {
-            testId: `test-${Date.now()}`,
-            userId, examId, answers,
-            score: parseFloat(score.toFixed(2)),
-            correctCount, totalQuestions,
-            timestamp: Date.now(),
-            review
-        };
-        mockDb.testResults.push(newResult);
-        return newResult;
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to submit test.");
+        }
+        return response.json();
     },
     
-    getTestResult: async(testId: string, userId: string): Promise<TestResult | null> => {
-        await delay(500);
-        const foundResult = mockDb.testResults.find(r => r.testId === testId && r.userId === userId);
-        return foundResult || null;
+    getTestResult: async(token: string, testId: string): Promise<TestResult | null> => {
+        const response = await fetch(`/api/results/${testId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            if (response.status === 404) return null;
+            const error = await response.json();
+            throw new Error(error.message || "Failed to fetch result.");
+        }
+        return response.json();
     },
     
-    getTestResultsForUser: async(userId: string): Promise<TestResult[]> => {
-        await delay(500);
-        return mockDb.testResults.filter(r => r.userId === userId).sort((a, b) => b.timestamp - a.timestamp);
+    getTestResultsForUser: async(token: string): Promise<TestResult[]> => {
+        const response = await fetch('/api/results', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Failed to fetch results.");
+        }
+        return response.json();
     },
 
-    getCertificateData: async (testId: string, user: User, orgId: string): Promise<CertificateData | null> => {
+    getCertificateData: async (token: string, testId: string, user: User, orgId: string): Promise<CertificateData | null> => {
         if (testId === 'sample') return googleSheetsService.getSampleCertificateData(user);
 
-        await delay(500);
-        const result = mockDb.testResults.find(r => r.testId === testId && r.userId === user.id);
+        const result = await googleSheetsService.getTestResult(token, testId);
         const organization = mockDb.organizations.find(o => o.id === orgId);
         
         if (!result || !organization) return null;

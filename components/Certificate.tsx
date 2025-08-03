@@ -15,7 +15,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => (
     <div className="absolute inset-0 grid grid-cols-3 grid-rows-6 gap-4 pointer-events-none overflow-hidden">
         {Array.from({ length: 18 }).map((_, i) => (
             <div key={i} className="flex items-center justify-center -rotate-45">
-                <p className="text-slate-200/50 font-bold text-3xl md:text-4xl tracking-widest opacity-50 select-none whitespace-nowrap">
+                <p className="text-gray-400 font-bold text-3xl md:text-4xl tracking-widest opacity-20 select-none whitespace-nowrap">
                     {text}
                 </p>
             </div>
@@ -26,7 +26,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => (
 const Certificate: React.FC = () => {
     const { testId = 'sample' } = useParams<{ testId?: string }>();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const { activeOrg } = useAppContext();
     const [certData, setCertData] = useState<CertificateData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -40,9 +40,14 @@ const Certificate: React.FC = () => {
                 navigate('/dashboard');
                 return;
             }
+            if (testId !== 'sample' && !token) {
+                toast.error("Authentication required to view certificate.");
+                navigate('/dashboard');
+                return;
+            }
             setIsLoading(true);
             try {
-                const data = await googleSheetsService.getCertificateData(testId, user, activeOrg.id);
+                const data = await googleSheetsService.getCertificateData(token || '', testId, user, activeOrg.id);
                 if (data) {
                     setCertData(data);
                 } else {
@@ -58,7 +63,7 @@ const Certificate: React.FC = () => {
         };
 
         fetchCertificateData();
-    }, [testId, user, activeOrg, navigate]);
+    }, [testId, user, token, activeOrg, navigate]);
 
     const handleDownload = async () => {
         if (!certificateRef.current) return;
