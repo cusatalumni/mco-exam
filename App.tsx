@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -21,7 +22,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user } = useAuth();
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" />;
   }
   return <>{children}</>;
 };
@@ -41,7 +42,7 @@ const AppContent: React.FC = () => {
                     <Route path="/certificate/sample" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
                     <Route path="/certificate/:testId" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
                 
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </main>
             <Footer />

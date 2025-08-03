@@ -1,54 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, Navigate } from 'react-router-dom';
+
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
 
 // This component handles the auth callback from the external site.
 const Login: React.FC = () => {
-    const [searchParams] = useSearchParams();
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
     const { user, loginWithToken } = useAuth();
     const [error, setError] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(true);
+    const wasAlreadyLoggedIn = useRef(!!user);
+    const tokenProcessed = useRef(false);
 
     useEffect(() => {
         const token = searchParams.get('token');
         
-        // Only process token if we don't have a user yet
-        if (token && !user) {
+        // Process a token only if it exists and hasn't been processed yet in this component lifecycle.
+        if (token && !tokenProcessed.current) {
             try {
                 loginWithToken(token);
-                // The component will re-render when the `user` state from context updates.
-                // The navigation is now handled declaratively in the return statement.
+                tokenProcessed.current = true; // Mark as processed to prevent re-processing on re-renders
             } catch (e: any) {
                 const errorMessage = e.message || 'Invalid login token. Please try again.';
                 toast.error(errorMessage);
                 setError(errorMessage);
             }
         } else if (!token && !user) {
+            // Handle case where user navigates here without a token and is not logged in.
             const errorMessage = 'Login token not found.';
             toast.error(errorMessage);
             setError(errorMessage);
-        } else if (user) {
-            // User is already logged in, no need to process, just redirect.
-            setIsProcessing(false);
         }
 
     }, [searchParams, loginWithToken, user]);
 
     // If there was an error during token processing, redirect to the home page.
     if (error) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/" />;
     }
 
-    // Once the user object is available in the context (either from the token or existing session),
-    // redirect to the dashboard or the intended page.
+    // Once the user object is available in the context (either from token or session), redirect.
     if (user) {
         const redirectTo = searchParams.get('redirect_to') || '/dashboard';
-        if (isProcessing) { // Only show toast on initial successful login
-             toast.success('Logged in successfully!');
+        
+        // This check ensures the toast only appears once after the token is processed.
+        if (tokenProcessed.current) {
+             if (wasAlreadyLoggedIn.current) {
+                toast.success('Exams synced successfully!');
+             } else {
+                toast.success('Logged in successfully!');
+             }
         }
-        return <Navigate to={redirectTo} replace />;
+        
+        return <Navigate to={redirectTo} />;
     }
 
     // While waiting for the token to be processed and user state to update, show a spinner.
