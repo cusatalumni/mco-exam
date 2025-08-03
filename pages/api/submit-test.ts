@@ -73,9 +73,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             review
         };
         
+        const resultToStore = {
+            ...newResult,
+            answers: JSON.stringify(newResult.answers),
+            review: JSON.stringify(newResult.review),
+        };
+
         // Save to Redis
         const pipeline = redis.pipeline();
-        pipeline.hset(`result:${newResult.testId}`, newResult);
+        pipeline.hset(`result:${newResult.testId}`, resultToStore);
         pipeline.sadd(`user:${userId}:results`, newResult.testId);
         await pipeline.exec();
 

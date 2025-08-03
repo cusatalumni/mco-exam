@@ -36,16 +36,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const decoded = jwt.verify(token, secret) as TokenPayload;
         const userId = decoded.user.id;
 
-        const result = await redis.hgetall<TestResult>(`result:${testId}`);
+        const resultFromRedis = await redis.hgetall(`result:${testId}`);
 
-        if (!result) {
+        if (!resultFromRedis) {
             return res.status(404).json({ message: 'Test result not found' });
         }
         
         // Security check: Ensure the fetched result belongs to the authenticated user
-        if (result.userId !== userId) {
+        if (resultFromRedis.userId !== userId) {
             return res.status(403).json({ message: 'Access denied' });
         }
+        
+        const result: TestResult = {
+            testId: resultFromRedis.testId as string,
+            userId: resultFromRedis.userId as string,
+            examId: resultFromRedis.examId as string,
+            score: Number(resultFromRedis.score),
+            correctCount: Number(resultFromRedis.correctCount),
+            totalQuestions: Number(resultFromRedis.totalQuestions),
+            timestamp: Number(resultFromRedis.timestamp),
+            answers: JSON.parse(resultFromRedis.answers as string),
+            review: JSON.parse(resultFromRedis.review as string)
+        };
         
         return res.status(200).json(result);
 
