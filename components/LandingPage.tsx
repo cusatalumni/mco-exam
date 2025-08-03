@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -31,6 +32,12 @@ const LandingPage: React.FC = () => {
         }
         navigate(`/test/${examId}`);
     };
+    
+    // Create a lookup map for exams for easier and more performant access inside the loop.
+    const examMap = useMemo(() => {
+        if (!activeOrg) return new Map();
+        return new Map(activeOrg.exams.map(exam => [exam.id, exam]));
+    }, [activeOrg]);
 
     if (isInitializing || !activeOrg) {
         return (
@@ -98,12 +105,14 @@ const LandingPage: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {activeOrg.examProductCategories.map(category => {
-                        const practiceExam = activeOrg.exams.find(e => e.id === category.practiceExamId);
-                        const certExam = activeOrg.exams.find(e => e.id === category.certificationExamId);
+                        const practiceExam = examMap.get(category.practiceExamId);
+                        const certExam = examMap.get(category.certificationExamId);
 
                         if (!practiceExam || !certExam) return null;
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
+                        // The purchaseUrl logic relies on the productUrl being correctly set in your configuration
+                        // and the corresponding product existing on your WooCommerce site.
                         const purchaseUrl = certExam.productUrl ? `${baseUrl}${certExam.productUrl}` : baseUrl;
 
                         return (

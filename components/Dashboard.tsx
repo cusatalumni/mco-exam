@@ -1,12 +1,13 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
 import Spinner from './Spinner';
-import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home } from 'lucide-react';
+import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
@@ -72,6 +73,23 @@ const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-8">
+                     {/* New Purchase Notification */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div className="flex items-center justify-center space-x-3">
+                            <RefreshCw className="text-blue-600" size={24} />
+                            <div>
+                                <p className="font-semibold text-blue-800">Just made a purchase?</p>
+                                <p className="text-sm text-blue-700">Click the button below to sync your latest exams to your dashboard.</p>
+                            </div>
+                        </div>
+                        <a
+                            href={`https://www.coding-online.net/exam-login/?redirect_to=/dashboard`}
+                            className="mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                        >
+                            Sync My Exams
+                        </a>
+                    </div>
+
                     {/* My Certification Exams */}
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h2 className="text-xl font-bold text-slate-800 flex items-center mb-4"><BookCopy className="mr-3 text-cyan-500" /> My Certification Exams</h2>
