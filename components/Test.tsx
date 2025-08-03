@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -12,7 +13,7 @@ const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
   const { user, useFreeAttempt } = useAuth();
-  const { activeOrg } = useAppContext();
+  const { activeOrg, isInitializing } = useAppContext();
 
   const [examConfig, setExamConfig] = useState<Exam | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -23,6 +24,8 @@ const Test: React.FC = () => {
   
 
   useEffect(() => {
+    if (isInitializing) return; // Wait for the app context to be ready
+
     if (!examId || !activeOrg) {
         toast.error("Exam configuration missing.");
         navigate('/dashboard');
@@ -59,7 +62,7 @@ const Test: React.FC = () => {
       }
     };
     fetchQuestions();
-  }, [examId, activeOrg, navigate, useFreeAttempt]);
+  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     setAnswers(prev => new Map(prev).set(questionId, optionIndex));
@@ -73,7 +76,7 @@ const Test: React.FC = () => {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
@@ -107,7 +110,7 @@ const Test: React.FC = () => {
     }
   };
 
-  if (isLoading || !examConfig) {
+  if (isInitializing || isLoading || !examConfig) {
     return <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg shadow-md"><Spinner /><p className="mt-4 text-slate-600">Loading your test...</p></div>;
   }
 
