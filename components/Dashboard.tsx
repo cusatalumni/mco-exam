@@ -253,6 +253,39 @@ const Dashboard: React.FC = () => {
                                {isTesting ? <Spinner /> : <Database size={16} />}
                                {isTesting ? 'Testing...' : 'Test DB Connection'}
                             </button>
+
+'use client';
+
+import { useState } from 'react';
+
+export default function TestRedisButton() {
+  const [result, setResult] = useState<string | null>(null);
+
+  const handleTest = async () => {
+    setResult('Testing...');
+    const res = await fetch('/api/test-redis');
+    const data = await res.json();
+
+    if (data.success) {
+      setResult(`✅ Redis returned: ${data.value}`);
+    } else {
+      setResult(`❌ Error: ${data.error}`);
+    }
+  };
+
+  return (
+    <div className="mt-6">
+      <button
+        onClick={handleTest}
+        className="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded"
+      >
+        Test DB Connection
+      </button>
+      {result && <p className="mt-2 text-slate-700">{result}</p>}
+    </div>
+  );
+}
+
                         </div>
                     </div>
                 </div>
