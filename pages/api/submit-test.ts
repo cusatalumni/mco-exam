@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const decoded = jwt.verify(token, secret) as TokenPayload;
+        const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] }) as TokenPayload;
         const userId = decoded.user.id;
         const { orgId, examId, answers } = req.body as { orgId: string, examId: string, answers: UserAnswer[] };
 

@@ -113,7 +113,7 @@ const LandingPage: React.FC = () => {
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
                         
-                        const purchaseUrl = certExam.productUrl ? `${baseUrl}/product/${certExam.productUrl}` : '#';
+                        const purchaseUrl = certExam.id ? `${baseUrl}/product/${certExam.id}` : '#';
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">

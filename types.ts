@@ -92,7 +92,6 @@ export interface Exam {
     certificateTemplateId: string;
     recommendedBook?: RecommendedBook;
     isPractice: boolean;
-    productUrl?: string;
 }
 
 export interface ExamProductCategory {
