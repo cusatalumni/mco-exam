@@ -248,13 +248,8 @@ export const googleSheetsService = {
         return shuffled.slice(0, Math.min(examConfig.numberOfQuestions, shuffled.length));
     },
 
-    submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[]): Promise<TestResult> => {
-        await googleSheetsService.initializeAndCategorizeExams();
-        const examConfig = googleSheetsService.getExamConfig(orgId, examId);
-        if (!examConfig) {
-            throw new Error("Exam configuration not found");
-        }
-        const questionPool = await googleSheetsService.getQuestions(examConfig);
+    submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[], questions: Question[]): Promise<TestResult> => {
+        const questionPool = questions;
 
         let correctCount = 0;
         const review: TestResult['review'] = [];

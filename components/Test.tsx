@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -75,7 +73,7 @@ const Test: React.FC = () => {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
@@ -98,7 +96,7 @@ const Test: React.FC = () => {
             answer,
         }));
         
-        const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers);
+        const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers, questions);
         toast.success("Test submitted successfully!");
         navigate(`/results/${result.testId}`);
 
