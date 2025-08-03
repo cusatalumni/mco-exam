@@ -111,9 +111,10 @@ const LandingPage: React.FC = () => {
                         if (!practiceExam || !certExam) return null;
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
-                        // The purchaseUrl logic relies on the productUrl being correctly set in your configuration
-                        // and the corresponding product existing on your WooCommerce site.
-                        const purchaseUrl = certExam.productUrl ? `${baseUrl}${certExam.productUrl}` : baseUrl;
+                        
+                        // Construct the purchase URL from the category name for better compatibility.
+                        const categorySlug = category.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-').replace(/[^\w-]+/g, '');
+                        const purchaseUrl = `${baseUrl}/product-category/${categorySlug}/`;
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
