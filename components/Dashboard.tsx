@@ -279,11 +279,7 @@ export default function TestRedisButton() {
   );
 }
 
-                            <button onClick={handleTestConnection} disabled={isTesting} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-                               {isTesting ? <Spinner /> : <Database size={16} />}
-                               {isTesting ? 'Testing...' : 'Test DB Connection'}
-                            </button>
-                        </div>
+                            
                     </div>
                 </div>
             </div>
