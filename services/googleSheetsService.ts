@@ -30,7 +30,7 @@ const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
     { id: 'prod-mta', name: 'Medical Terminology & Anatomy', description: 'A foundational test series covering core medical terminology and anatomy.', practiceExamId: 'exam-mta-practice', certificationExamId: 'exam-mta-cert' },
 ];
 
-const slugify = (text: string) => '/' + text.toLowerCase().replace(/ & /g, '-and-').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') + '/';
+const slugify = (text: string) => text.toLowerCase().replace(/ & /g, '-and-').replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 
 
 const ALL_EXAMS: Exam[] = [
