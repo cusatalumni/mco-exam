@@ -1,12 +1,11 @@
 import { Redis } from '@upstash/redis';
 
-// Make the connection logic more robust by checking for Vercel's KV variables first,
-// then falling back to direct Upstash variables.
-const redisUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+// Use the specific environment variables for Upstash Redis as provided by the Vercel integration.
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 if (!redisUrl || !redisToken) {
-    throw new Error('Redis connection credentials (e.g., KV_REST_API_URL, UPSTASH_REDIS_REST_URL) are not set in environment variables.');
+    throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set in the Vercel project environment variables.');
 }
 
 export const redis = new Redis({
