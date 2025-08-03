@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
-import { redis } from '../../../services/redis';
+import { redis, jwtSecret } from '../../../services/redis';
 import type { TestResult, TokenPayload } from '../../../types';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -20,12 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     
     const token = authHeader.split(' ')[1];
-    const secret = process.env.ANNAPOORNA_JWT_SECRET_KEY;
-    
-    if (!secret) {
-        console.error("JWT secret key is not configured on the server.");
-        return res.status(500).json({ message: 'Server configuration error' });
-    }
+    const secret = jwtSecret; // Use the standardized secret from the redis service
     
     try {
         const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] }) as TokenPayload;
