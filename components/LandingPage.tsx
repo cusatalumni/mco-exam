@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -26,17 +23,18 @@ const LandingPage: React.FC = () => {
     const { activeOrg, isInitializing } = useAppContext();
     
     const loginUrl = `https://www.coding-online.net/exam-login/`;
+    const appUrl = 'https://exams.coding-online.net';
+    
     // FIX: The path needs the hash for the router
     const appDashboardPath = '/#/dashboard';
-    const fullLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
-    const baseUrl = `https://www.coding-online.net`;
+    const fullLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
             toast.error("Please log in to take a practice test.");
-            // FIX: The path needs the hash for the router
+            // FIX: The path needs the hash for the router and the full app URL.
             const practicePath = `/#/test/${examId}`;
-            const practiceLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(practicePath)}`;
+            const practiceLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + practicePath)}`;
             window.location.href = practiceLoginUrl;
             return;
         }
@@ -122,7 +120,7 @@ const LandingPage: React.FC = () => {
 
                         const isCertUnlocked = user && paidExamIds.includes(certExam.id);
                         
-                        const purchaseUrl = `${baseUrl}/product/${certExam.id}`;
+                        const purchaseUrl = certExam.productSlug ? `https://www.coding-online.net/product/${certExam.productSlug}` : '#';
 
                         return (
                             <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
@@ -160,7 +158,7 @@ const LandingPage: React.FC = () => {
                                                 href={purchaseUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition"
+                                                className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300"
                                             >
                                                 <Lock size={18} className="mr-2" />
                                                 <span>Purchase Exam</span>

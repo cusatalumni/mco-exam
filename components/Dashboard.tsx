@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,9 +19,10 @@ const Dashboard: React.FC = () => {
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
-    // FIX: The path needs the hash for the router
+    const appUrl = 'https://exams.coding-online.net';
+    // FIX: The redirect path must include the hash for the React Router and the full app URL.
     const appDashboardPath = '/#/dashboard';
-    const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
+    const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
 
     useEffect(() => {
