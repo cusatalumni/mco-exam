@@ -311,7 +311,7 @@ export const googleSheetsService = {
 
         const result = await googleSheetsService.getTestResult(user, testId);
         const organization = mockDb.organizations.find(o => o.id === orgId);
-        const isAdmin = user.name.toLowerCase() === 'manojvarkala';
+        const isAdmin = !!user.isAdmin;
         
         if (!result || !organization) return null;
         

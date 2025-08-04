@@ -58,7 +58,7 @@ const Header: React.FC = () => {
             <>
               <div className="flex items-center space-x-2 text-slate-600">
                 <UserCircle size={20} />
-                <span className="hidden sm:inline">Welcome, {user.name}</span>
+                <span className="hidden sm:inline">Welcome, {user.name}{user.isAdmin && ' (Admin)'}</span>
               </div>
                <a
                 href={myAccountUrl}
