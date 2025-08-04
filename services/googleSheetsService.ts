@@ -1,8 +1,4 @@
 
-
-
-
-
 import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory, User } from '../types';
 import { logoBase64 } from '../assets/logo';
 

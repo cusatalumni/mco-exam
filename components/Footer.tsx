@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
             <span className="text-slate-300">|</span>
             <a href="https://annapoornainfo.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline">Privacy Policy</a>
         </div>
-        <p>&copy; {new Date().getFullYear()} Medical Coding Online Annapoorna Examination App. All Rights Reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Medical Coding Online by Annapoorna Examination App. All Rights Reserved.</p>
         <p>An <a href="https://annapoornainfo.com" target="_blank" rel="noopener noreferrer" className="text-cyan-600 hover:underline">Annapoorna Infotech</a> Venture.</p>
       </div>
     </footer>
