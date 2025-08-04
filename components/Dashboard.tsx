@@ -1,16 +1,11 @@
 
-
-
-
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
 import Spinner from './Spinner';
-import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Star, Zap } from 'lucide-react';
+import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Star, Zap, CheckCircle, Lock } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
@@ -44,10 +39,8 @@ const Dashboard: React.FC = () => {
                     setStats({ avgScore: 0, bestScore: 0, examsTaken: 0 });
                 }
 
-                // Practice exam stats
                 const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
                 const practiceAttemptsTaken = userResults.filter(r => practiceExamIds.has(r.examId)).length;
-                // Total attempts is now a fixed number, not based on number of exams.
                 setPracticeStats({ attemptsTaken: practiceAttemptsTaken, attemptsAllowed: 10 });
 
             } catch (error) {
@@ -60,19 +53,40 @@ const Dashboard: React.FC = () => {
         fetchResults();
     }, [user, activeOrg]);
 
+    const processedPurchasedExams = useMemo(() => {
+        if (!activeOrg) return [];
+        
+        return activeOrg.exams
+            .filter(e => paidExamIds.includes(e.id) && !e.isPractice)
+            .map(exam => {
+                const examResults = results.filter(r => r.examId === exam.id);
+                const attemptsMade = examResults.length;
+                const hasPassed = examResults.some(r => r.score >= exam.passScore);
+                const bestScore = examResults.length > 0 ? Math.max(...examResults.map(r => r.score)) : null;
+    
+                let status: 'passed' | 'attempts_exceeded' | 'available' = 'available';
+                if (hasPassed) {
+                    status = 'passed';
+                } else if (attemptsMade >= 3) {
+                    status = 'attempts_exceeded';
+                }
+    
+                return {
+                    ...exam,
+                    attemptsMade,
+                    status,
+                    bestScore
+                };
+            });
+    }, [activeOrg, paidExamIds, results]);
+
+
     if (isLoading || !activeOrg) {
         return <div className="flex flex-col items-center justify-center h-64"><Spinner /><p className="mt-4">Loading your dashboard...</p></div>;
     }
 
     const getExamName = (examId: string) => activeOrg.exams.find(e => e.id === examId)?.name || 'Unknown Exam';
-    const purchasedExams = activeOrg.exams.filter(e => paidExamIds.includes(e.id) && !e.isPractice);
     const practiceExams = activeOrg.exams.filter(e => e.isPractice);
-
-    const getBestScoreForExam = (examId: string) => {
-        const examResults = results.filter(r => r.examId === examId);
-        if (examResults.length === 0) return null;
-        return Math.max(...examResults.map(r => r.score));
-    };
     
 
     return (
@@ -106,26 +120,38 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h2 className="text-xl font-bold text-slate-800 flex items-center mb-4"><BookCopy className="mr-3 text-cyan-500" /> My Certification Exams</h2>
                         <div className="space-y-3">
-                            {purchasedExams.length > 0 ? purchasedExams.map(exam => {
-                                const bestScore = getBestScoreForExam(exam.id);
+                            {processedPurchasedExams.length > 0 ? processedPurchasedExams.map(exam => {
+                                const canTakeTest = exam.status === 'available';
                                 return (
-                                     <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-                                        <div>
+                                     <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                        <div className="flex-grow">
                                             <h3 className="font-bold text-slate-800">{exam.name}</h3>
-                                            <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
+                                                {exam.status === 'passed' && (
+                                                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1"><CheckCircle size={12}/>Passed</span>
+                                                )}
+                                                {exam.status === 'attempts_exceeded' && (
+                                                    <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">3/3 Attempts Used</span>
+                                                )}
+                                                {exam.status === 'available' && exam.attemptsMade > 0 && (
+                                                    <span className="text-xs font-bold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full">{exam.attemptsMade}/3 Attempts</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-4 w-full sm:w-auto">
-                                            {bestScore !== null && (
+                                            {exam.bestScore !== null && (
                                                 <div className="text-center">
                                                     <p className="text-xs text-slate-500">Best</p>
-                                                    <p className="font-bold text-lg text-cyan-600">{bestScore}%</p>
+                                                    <p className="font-bold text-lg text-cyan-600">{exam.bestScore}%</p>
                                                 </div>
                                             )}
                                             <button
                                                 onClick={() => navigate(`/test/${exam.id}`)}
-                                                className="flex-grow bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition"
+                                                disabled={!canTakeTest}
+                                                className="flex-grow flex items-center justify-center bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed"
                                             >
-                                                {bestScore !== null ? 'Retake Exam' : 'Start Exam'}
+                                                {exam.status === 'passed' ? <><CheckCircle size={16} className="mr-2"/> Passed</> : exam.attemptsMade > 0 ? 'Retake Exam' : 'Start Exam'}
                                             </button>
                                         </div>
                                     </div>

@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -28,7 +24,7 @@ const Test: React.FC = () => {
   
 
   useEffect(() => {
-    if (isInitializing) return; // Wait for the app context to be ready
+    if (isInitializing) return;
 
     if (!examId || !activeOrg) {
         toast.error("Exam configuration missing.");
@@ -45,20 +41,42 @@ const Test: React.FC = () => {
     setExamConfig(config);
 
     const loadTest = async () => {
-      // Check for practice test attempt limits, bypass if subscribed
-      if (config.isPractice && user && !isSubscribed) {
-        const userResults = await googleSheetsService.getTestResultsForUser(user);
-        const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
-        const practiceAttempts = userResults.filter(r => practiceExamIds.has(r.examId)).length;
-        if (practiceAttempts >= 10) {
-          toast.error("You have used all 10 of your free practice attempts.", { duration: 4000 });
-          navigate('/dashboard');
+      if (!user) { // Should not happen due to protected route, but good practice
+          navigate('/');
           return;
-        }
       }
 
-      if (config.price === 0) {
-          useFreeAttempt();
+      // Logic for both Practice and Certification attempt limits
+      const userResults = await googleSheetsService.getTestResultsForUser(user);
+
+      if (config.isPractice) {
+        // Free practice test attempt limits
+        if (!isSubscribed) {
+          const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
+          const practiceAttempts = userResults.filter(r => practiceExamIds.has(r.examId)).length;
+          if (practiceAttempts >= 10) {
+            toast.error("You have used all 10 of your free practice attempts.", { duration: 4000 });
+            navigate('/dashboard');
+            return;
+          }
+        }
+        useFreeAttempt();
+
+      } else {
+        // Certification exam attempt limits (3 attempts)
+        const certExamResults = userResults.filter(r => r.examId === config.id);
+        const hasPassed = certExamResults.some(r => r.score >= config.passScore);
+        
+        if (hasPassed) {
+            toast.error("You have already passed this exam.", { duration: 4000 });
+            navigate('/dashboard');
+            return;
+        }
+        if (certExamResults.length >= 3) {
+            toast.error("You have used all 3 attempts for this exam.", { duration: 4000 });
+            navigate('/dashboard');
+            return;
+        }
       }
 
       try {
