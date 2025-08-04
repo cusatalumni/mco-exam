@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -90,14 +89,27 @@ const Test: React.FC = () => {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const handleDoubleClickOption = (questionId: number, optionIndex: number) => {
+    handleAnswerSelect(questionId, optionIndex);
+    if (currentQuestionIndex < questions.length - 1) {
+        setTimeout(() => handleNext(), 200);
     }
   };
 
   const handleSubmit = async () => {
-    if (answers.size !== questions.length) {
-        toast.error('Please answer all questions before submitting.');
-        return;
+    const unansweredQuestionsCount = questions.length - answers.size;
+    if (unansweredQuestionsCount > 0) {
+        const confirmed = window.confirm(
+            `You have ${unansweredQuestionsCount} unanswered question(s). Submitting now will mark them as incorrect. Do you want to proceed?`
+        );
+        if (!confirmed) {
+            toast('Submission cancelled. Please review all questions.');
+            return;
+        }
     }
     
     if(!user || !activeOrg || !examId) {
@@ -150,7 +162,10 @@ const Test: React.FC = () => {
 
       <div className="space-y-4 mb-8">
         {currentQuestion.options.map((option, index) => (
-          <label key={index} className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${answers.get(currentQuestion.id) === index ? 'bg-cyan-50 border-cyan-500 ring-2 ring-cyan-500' : 'border-slate-300 hover:border-cyan-400'}`}>
+          <label 
+            key={index} 
+            onDoubleClick={() => handleDoubleClickOption(currentQuestion.id, index)}
+            className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${answers.get(currentQuestion.id) === index ? 'bg-cyan-50 border-cyan-500 ring-2 ring-cyan-500' : 'border-slate-300 hover:border-cyan-400'}`}>
             <input
               type="radio"
               name={`question-${currentQuestion.id}`}
@@ -176,7 +191,7 @@ const Test: React.FC = () => {
         {currentQuestionIndex === questions.length - 1 ? (
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || answers.size !== questions.length}
+            disabled={isSubmitting}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition disabled:bg-green-300"
           >
             {isSubmitting ? <Spinner /> : <><Send size={16}/> <span>Submit</span></>}

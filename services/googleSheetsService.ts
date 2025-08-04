@@ -1,4 +1,5 @@
 
+
 import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory, User } from '../types';
 import { logoBase64 } from '../assets/logo';
 
@@ -251,27 +252,29 @@ export const googleSheetsService = {
 
     submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[], questions: Question[]): Promise<TestResult> => {
         const questionPool = questions;
+        const answerMap = new Map(answers.map(a => [a.questionId, a.answer]));
 
         let correctCount = 0;
         const review: TestResult['review'] = [];
 
-        answers.forEach(userAnswer => {
-            const question = questionPool.find(q => q.id === userAnswer.questionId);
-            if (question) {
-                if ((userAnswer.answer + 1) === question.correctAnswer) {
-                    correctCount++;
-                }
-                review.push({
-                    questionId: question.id,
-                    question: question.question,
-                    options: question.options,
-                    userAnswer: userAnswer.answer,
-                    correctAnswer: question.correctAnswer - 1,
-                });
+        questionPool.forEach(question => {
+            const userAnswerIndex = answerMap.get(question.id);
+            const isAnswered = userAnswerIndex !== undefined;
+            const isCorrect = isAnswered && (userAnswerIndex! + 1) === question.correctAnswer;
+            
+            if (isCorrect) {
+                correctCount++;
             }
+            review.push({
+                questionId: question.id,
+                question: question.question,
+                options: question.options,
+                userAnswer: isAnswered ? userAnswerIndex! : -1, // Use -1 for unanswered
+                correctAnswer: question.correctAnswer - 1,
+            });
         });
 
-        const totalQuestions = answers.length;
+        const totalQuestions = questionPool.length;
         const score = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0;
         const newResult: TestResult = {
             testId: `test-${Date.now()}`,
