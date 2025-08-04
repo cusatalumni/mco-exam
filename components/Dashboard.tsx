@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +20,12 @@ const Dashboard: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState({ avgScore: 0, bestScore: 0, examsTaken: 0 });
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
+
+    const loginUrl = 'https://www.coding-online.net/exam-login/';
+    // FIX: The path needs the hash for the router
+    const appDashboardPath = '/#/dashboard';
+    const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
+
 
     useEffect(() => {
         if (!user || !activeOrg) return;
@@ -111,7 +118,7 @@ const Dashboard: React.FC = () => {
                             </div>
                         </div>
                         <a
-                            href={`https://www.coding-online.net/exam-login/?redirect_to=/dashboard`}
+                            href={syncUrl}
                             className="mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                             title="This takes you to our main site to securely sync your purchased exams with your account."
                         >
