@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -13,7 +14,7 @@ import Certificate from './components/Certificate';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
-// Checkout is removed
+import Instructions from './components/Instructions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -35,6 +36,7 @@ const AppContent: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/auth" element={<Login />} />
+                    <Route path="/instructions" element={<Instructions />} />
                     
                     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/test/:examId" element={<ProtectedRoute><Test /></ProtectedRoute>} />

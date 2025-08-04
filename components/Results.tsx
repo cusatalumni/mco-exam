@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -8,7 +9,7 @@ import type { TestResult, Exam, RecommendedBook } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import Spinner from './Spinner';
-import { Check, X, FileDown, BookUp } from 'lucide-react';
+import { Check, X, FileDown, BookUp, ShieldCheck } from 'lucide-react';
 
 const Results: React.FC = () => {
     const { testId } = useParams<{ testId: string }>();
@@ -103,6 +104,7 @@ const Results: React.FC = () => {
     const isPass = result.score >= exam.passScore;
     const isPaid = exam.price > 0;
     const scoreColor = isPass ? 'text-green-600' : 'text-red-600';
+    const isAdmin = user?.name === 'manojvarkala';
 
     return (
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
@@ -117,7 +119,7 @@ const Results: React.FC = () => {
                 )}
             </div>
 
-            {isPaid && isPass && (
+            {(isPaid && isPass) && (
                 <div className="text-center mb-8">
                     <button
                         onClick={() => navigate(`/certificate/${result.testId}`)}
@@ -125,6 +127,18 @@ const Results: React.FC = () => {
                     >
                         <FileDown size={20} />
                         <span>Download Your Certificate</span>
+                    </button>
+                </div>
+            )}
+
+            {isAdmin && (
+                <div className="text-center mb-8">
+                    <button
+                        onClick={() => navigate(`/certificate/${result.testId}`)}
+                        className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105"
+                    >
+                        <ShieldCheck size={20} />
+                        <span>View Final Certificate (Admin)</span>
                     </button>
                 </div>
             )}
