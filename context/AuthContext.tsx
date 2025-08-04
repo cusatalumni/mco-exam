@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import type { User, TokenPayload } from '../types';
 
@@ -5,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   paidExamIds: string[];
+  isSubscribed: boolean;
   loginWithToken: (token: string) => void;
   logout: () => void;
   useFreeAttempt: () => void;
@@ -34,6 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return [];
       }
   });
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
 
   const loginWithToken = (jwtToken: string) => {
     try {
@@ -59,6 +62,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             localStorage.setItem('examUser', JSON.stringify(payload.user));
             localStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
             localStorage.setItem('authToken', jwtToken);
+            // In the future, subscription status could be passed in the token
+            // setIsSubscribed(payload.isSubscribed || false);
         } else {
             throw new Error("Invalid token payload structure.");
         }
@@ -76,6 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setPaidExamIds([]);
     setToken(null);
+    setIsSubscribed(false);
     localStorage.removeItem('examUser');
     localStorage.removeItem('paidExamIds');
     localStorage.removeItem('authToken');
@@ -89,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, paidExamIds, loginWithToken, logout, useFreeAttempt }}>
+    <AuthContext.Provider value={{ user, token, paidExamIds, isSubscribed, loginWithToken, logout, useFreeAttempt }}>
       {children}
     </AuthContext.Provider>
   );

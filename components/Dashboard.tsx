@@ -1,26 +1,28 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
 import Spinner from './Spinner';
-import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw } from 'lucide-react';
+import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Star, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
-    const { user, paidExamIds } = useAuth();
+    const { user, paidExamIds, isSubscribed } = useAuth();
     const { activeOrg } = useAppContext();
     const [results, setResults] = useState<TestResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState({ avgScore: 0, bestScore: 0, examsTaken: 0 });
+    const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !activeOrg) return;
         const fetchResults = async () => {
             setIsLoading(true);
             try {
@@ -39,6 +41,14 @@ const Dashboard: React.FC = () => {
                 } else {
                     setStats({ avgScore: 0, bestScore: 0, examsTaken: 0 });
                 }
+
+                // Practice exam stats
+                const practiceExams = activeOrg.exams.filter(e => e.isPractice);
+                const totalPracticeAttemptsAllowed = practiceExams.length * 10;
+                const practiceExamIds = new Set(practiceExams.map(e => e.id));
+                const practiceAttemptsTaken = userResults.filter(r => practiceExamIds.has(r.examId)).length;
+                setPracticeStats({ attemptsTaken: practiceAttemptsTaken, attemptsAllowed: totalPracticeAttemptsAllowed });
+
             } catch (error) {
                 console.error("Failed to fetch dashboard results:", error);
                 toast.error("Could not load your exam history.");
@@ -47,7 +57,7 @@ const Dashboard: React.FC = () => {
             }
         };
         fetchResults();
-    }, [user]);
+    }, [user, activeOrg]);
 
     if (isLoading || !activeOrg) {
         return <div className="flex flex-col items-center justify-center h-64"><Spinner /><p className="mt-4">Loading your dashboard...</p></div>;
@@ -140,14 +150,16 @@ const Dashboard: React.FC = () => {
                          <div className="space-y-3">
                             {practiceExams.length > 0 ? practiceExams.map(exam => {
                                 const attempts = getAttemptsForExam(exam.id);
-                                const canTakeTest = attempts < 10;
+                                const canTakeTest = isSubscribed || attempts < 10;
                                 const attemptsLeft = 10 - attempts;
                                 return (
                                     <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                                         <div>
                                             <h3 className="font-bold text-slate-700">{exam.name}</h3>
                                             <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
-                                            {canTakeTest ? (
+                                            {isSubscribed ? (
+                                                <p className="text-xs text-green-500 mt-1">Unlimited attempts available.</p>
+                                            ) : canTakeTest ? (
                                                 <p className="text-xs text-slate-500 mt-1">{attemptsLeft} attempt(s) remaining.</p>
                                             ) : (
                                                 <p className="text-xs text-red-500 mt-1">You have reached the maximum number of attempts.</p>
@@ -216,6 +228,36 @@ const Dashboard: React.FC = () => {
 
                 {/* Sidebar */}
                 <div className="lg:col-span-1 space-y-8">
+                     {/* Free Practice Status Card */}
+                    <div className="bg-white p-6 rounded-xl shadow-md">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><Star className="mr-2 text-yellow-500"/> Free Practice Status</h3>
+                        {isSubscribed ? (
+                            <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="font-bold text-green-700">Pro Plan Active</p>
+                                <p className="text-sm text-green-600">You have unlimited practice attempts!</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                                    <span className="font-medium text-slate-600">Attempts Taken</span>
+                                    <span className="font-bold text-slate-800 text-lg">{practiceStats.attemptsTaken}</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                                    <span className="font-medium text-slate-600">Total Attempts Allowed</span>
+                                    <span className="font-bold text-slate-800 text-lg">{practiceStats.attemptsAllowed}</span>
+                                </div>
+                                <div className="mt-4">
+                                    <button 
+                                        disabled 
+                                        className="w-full bg-slate-200 text-slate-500 font-bold py-2 px-3 rounded-lg transition text-sm flex items-center justify-center gap-2 cursor-not-allowed"
+                                        title="Subscription feature coming soon!">
+                                        <Zap size={16} /> Upgrade for Unlimited
+                                    </button>
+                                    <p className="text-xs text-center text-slate-400 mt-2">Coming Soon</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     {/* Stats Card */}
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h3 className="text-lg font-bold text-slate-800 mb-4">At a Glance</h3>

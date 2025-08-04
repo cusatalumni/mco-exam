@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -13,7 +14,7 @@ import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
 const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
-  const { user, useFreeAttempt } = useAuth();
+  const { user, useFreeAttempt, isSubscribed } = useAuth();
   const { activeOrg, isInitializing } = useAppContext();
 
   const [examConfig, setExamConfig] = useState<Exam | null>(null);
@@ -42,8 +43,8 @@ const Test: React.FC = () => {
     setExamConfig(config);
 
     const loadTest = async () => {
-      // Check for practice test attempt limits
-      if (config.isPractice && user) {
+      // Check for practice test attempt limits, bypass if subscribed
+      if (config.isPractice && user && !isSubscribed) {
         const userResults = await googleSheetsService.getTestResultsForUser(user);
         const attempts = userResults.filter(r => r.examId === examId).length;
         if (attempts >= 10) {
@@ -75,13 +76,21 @@ const Test: React.FC = () => {
     };
 
     loadTest();
-  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing, user]);
+  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing, user, isSubscribed]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     setAnswers(prev => new Map(prev).set(questionId, optionIndex));
   };
 
   const handleNext = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!answers.has(currentQuestion.id)) {
+        const confirmed = window.confirm("You have not answered the current question. Would you like to skip it for now?");
+        if (!confirmed) {
+            return; // User chose to stay on the question
+        }
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     }
