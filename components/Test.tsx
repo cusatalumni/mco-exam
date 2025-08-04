@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { googleSheetsService } from '../services/googleSheetsService';
@@ -7,7 +7,13 @@ import type { Question, UserAnswer, Exam } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import Spinner from './Spinner';
-import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Send, Clock } from 'lucide-react';
+
+const formatTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+};
 
 const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
@@ -21,7 +27,14 @@ const Test: React.FC = () => {
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const timerIntervalRef = useRef<number | null>(null);
+
+  const handleSubmitRef = useRef(handleSubmit);
+
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  });
 
   useEffect(() => {
     if (isInitializing) return;
@@ -41,16 +54,14 @@ const Test: React.FC = () => {
     setExamConfig(config);
 
     const loadTest = async () => {
-      if (!user) { // Should not happen due to protected route, but good practice
+      if (!user) {
           navigate('/');
           return;
       }
 
-      // Logic for both Practice and Certification attempt limits
       const userResults = await googleSheetsService.getTestResultsForUser(user);
 
       if (config.isPractice) {
-        // Free practice test attempt limits
         if (!isSubscribed) {
           const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
           const practiceAttempts = userResults.filter(r => practiceExamIds.has(r.examId)).length;
@@ -61,9 +72,7 @@ const Test: React.FC = () => {
           }
         }
         useFreeAttempt();
-
       } else {
-        // Certification exam attempt limits (3 attempts)
         const certExamResults = userResults.filter(r => r.examId === config.id);
         const hasPassed = certExamResults.some(r => r.score >= config.passScore);
         
@@ -88,6 +97,29 @@ const Test: React.FC = () => {
             return;
         }
         setQuestions(fetchedQuestions);
+
+        // Timer setup
+        const timerKey = `exam_timer_${examId}_${user.id}`;
+        let endTime = localStorage.getItem(timerKey);
+        if (!endTime) {
+            const duration = config.durationMinutes || 90;
+            endTime = (Date.now() + duration * 60 * 1000).toString();
+            localStorage.setItem(timerKey, endTime);
+        }
+        
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+
+        timerIntervalRef.current = window.setInterval(() => {
+            const remaining = Math.max(0, Math.round((parseInt(endTime!) - Date.now()) / 1000));
+            setTimeLeft(remaining);
+            if (remaining === 0) {
+                if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+                localStorage.removeItem(timerKey);
+                toast.error("Time's up! Your test has been submitted automatically.");
+                handleSubmitRef.current(true);
+            }
+        }, 1000);
+
       } catch (error) {
         toast.error('Failed to load the test.');
         navigate('/dashboard');
@@ -97,6 +129,9 @@ const Test: React.FC = () => {
     };
 
     loadTest();
+    return () => {
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
   }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing, user, isSubscribed]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
@@ -108,7 +143,7 @@ const Test: React.FC = () => {
     if (!answers.has(currentQuestion.id)) {
         const confirmed = window.confirm("You have not answered the current question. Would you like to skip it for now?");
         if (!confirmed) {
-            return; // User chose to stay on the question
+            return;
         }
     }
 
@@ -130,15 +165,17 @@ const Test: React.FC = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    const unansweredQuestionsCount = questions.length - answers.size;
-    if (unansweredQuestionsCount > 0) {
-        const confirmed = window.confirm(
-            `You have ${unansweredQuestionsCount} unanswered question(s). Submitting now will mark them as incorrect. Do you want to proceed?`
-        );
-        if (!confirmed) {
-            toast('Submission cancelled. Please review all questions.');
-            return;
+  async function handleSubmit(isAutoSubmit = false) {
+    if (!isAutoSubmit) {
+        const unansweredQuestionsCount = questions.length - answers.size;
+        if (unansweredQuestionsCount > 0) {
+            const confirmed = window.confirm(
+                `You have ${unansweredQuestionsCount} unanswered question(s). Submitting now will mark them as incorrect. Do you want to proceed?`
+            );
+            if (!confirmed) {
+                toast('Submission cancelled. Please review all questions.');
+                return;
+            }
         }
     }
     
@@ -149,6 +186,9 @@ const Test: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    if(timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    localStorage.removeItem(`exam_timer_${examId}_${user.id}`);
+
     try {
         const userAnswers: UserAnswer[] = Array.from(answers.entries()).map(([questionId, answer]) => ({
             questionId,
@@ -179,8 +219,18 @@ const Test: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">{examConfig.name}</h1>
-      <p className="text-slate-500 mb-6">Question {currentQuestionIndex + 1} of {questions.length}</p>
+      <div className="flex justify-between items-start mb-2">
+        <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">{examConfig.name}</h1>
+            <p className="text-slate-500">Question {currentQuestionIndex + 1} of {questions.length}</p>
+        </div>
+        {timeLeft !== null && (
+            <div className="flex items-center space-x-2 bg-slate-100 text-slate-700 font-bold py-2 px-4 rounded-lg">
+                <Clock size={20} />
+                <span>{formatTime(timeLeft)}</span>
+            </div>
+        )}
+      </div>
 
       <div className="w-full bg-slate-200 rounded-full h-2.5 mb-6">
         <div className="bg-cyan-600 h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
@@ -220,7 +270,7 @@ const Test: React.FC = () => {
         
         {currentQuestionIndex === questions.length - 1 ? (
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit(false)}
             disabled={isSubmitting}
             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg transition disabled:bg-green-300"
           >

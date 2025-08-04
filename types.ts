@@ -93,6 +93,7 @@ export interface Exam {
     recommendedBook?: RecommendedBook;
     isPractice: boolean;
     productSlug?: string;
+    durationMinutes?: number;
 }
 
 export interface ExamProductCategory {

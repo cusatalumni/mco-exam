@@ -11,8 +11,10 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    // Redirect to the external WordPress site's logout page after clearing local state
-    window.location.href = 'https://www.coding-online.net';
+    // Redirect to the external WordPress site's logout page, then back to the app's home
+    const appHomeUrl = 'https://exams.coding-online.net';
+    const wpLogoutUrl = `https://www.coding-online.net/wp-login.php?action=logout&redirect_to=${encodeURIComponent(appHomeUrl)}`;
+    window.location.href = wpLogoutUrl;
   };
 
   const headerLink = user ? "/dashboard" : "/";

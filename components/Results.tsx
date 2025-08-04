@@ -102,7 +102,7 @@ const Results: React.FC = () => {
     const isPass = result.score >= exam.passScore;
     const isPaid = exam.price > 0;
     const scoreColor = isPass ? 'text-green-600' : 'text-red-600';
-    const isAdmin = user?.name === 'manojvarkala';
+    const isAdmin = user?.name.toLowerCase() === 'manojvarkala';
 
     return (
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
