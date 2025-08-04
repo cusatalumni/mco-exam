@@ -120,7 +120,7 @@ const LandingPage: React.FC = () => {
                                         className="w-full flex justify-center items-center bg-white border-2 border-cyan-600 text-cyan-700 font-bold py-3 px-4 rounded-lg hover:bg-cyan-600 hover:text-white transition-colors duration-200"
                                     >
                                         <PlayCircle size={18} className="mr-2" />
-                                        <span>Practice Test</span>
+                                        <span>Free Practice Test</span>
                                     </button>
                             
                                     {isCertUnlocked ? (
