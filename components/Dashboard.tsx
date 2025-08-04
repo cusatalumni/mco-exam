@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -43,11 +45,10 @@ const Dashboard: React.FC = () => {
                 }
 
                 // Practice exam stats
-                const practiceExams = activeOrg.exams.filter(e => e.isPractice);
-                const totalPracticeAttemptsAllowed = practiceExams.length * 10;
-                const practiceExamIds = new Set(practiceExams.map(e => e.id));
+                const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
                 const practiceAttemptsTaken = userResults.filter(r => practiceExamIds.has(r.examId)).length;
-                setPracticeStats({ attemptsTaken: practiceAttemptsTaken, attemptsAllowed: totalPracticeAttemptsAllowed });
+                // Total attempts is now a fixed number, not based on number of exams.
+                setPracticeStats({ attemptsTaken: practiceAttemptsTaken, attemptsAllowed: 10 });
 
             } catch (error) {
                 console.error("Failed to fetch dashboard results:", error);
@@ -73,10 +74,6 @@ const Dashboard: React.FC = () => {
         return Math.max(...examResults.map(r => r.score));
     };
     
-    const getAttemptsForExam = (examId: string) => {
-        return results.filter(r => r.examId === examId).length;
-    };
-
 
     return (
         <div>
@@ -149,20 +146,14 @@ const Dashboard: React.FC = () => {
                         <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><FlaskConical className="mr-3 text-cyan-500" /> Practice Tests</h2>
                          <div className="space-y-3">
                             {practiceExams.length > 0 ? practiceExams.map(exam => {
-                                const attempts = getAttemptsForExam(exam.id);
-                                const canTakeTest = isSubscribed || attempts < 10;
-                                const attemptsLeft = 10 - attempts;
+                                const canTakeTest = isSubscribed || practiceStats.attemptsTaken < 10;
                                 return (
                                     <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
                                         <div>
                                             <h3 className="font-bold text-slate-700">{exam.name}</h3>
                                             <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
-                                            {isSubscribed ? (
+                                            {isSubscribed && (
                                                 <p className="text-xs text-green-500 mt-1">Unlimited attempts available.</p>
-                                            ) : canTakeTest ? (
-                                                <p className="text-xs text-slate-500 mt-1">{attemptsLeft} attempt(s) remaining.</p>
-                                            ) : (
-                                                <p className="text-xs text-red-500 mt-1">You have reached the maximum number of attempts.</p>
                                             )}
                                         </div>
                                         <button

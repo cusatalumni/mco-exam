@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -46,9 +48,10 @@ const Test: React.FC = () => {
       // Check for practice test attempt limits, bypass if subscribed
       if (config.isPractice && user && !isSubscribed) {
         const userResults = await googleSheetsService.getTestResultsForUser(user);
-        const attempts = userResults.filter(r => r.examId === examId).length;
-        if (attempts >= 10) {
-          toast.error("You have reached the maximum number of attempts for this practice test.", { duration: 4000 });
+        const practiceExamIds = new Set(activeOrg.exams.filter(e => e.isPractice).map(e => e.id));
+        const practiceAttempts = userResults.filter(r => practiceExamIds.has(r.examId)).length;
+        if (practiceAttempts >= 10) {
+          toast.error("You have used all 10 of your free practice attempts.", { duration: 4000 });
           navigate('/dashboard');
           return;
         }
