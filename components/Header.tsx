@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { LogOut, UserCircle, UserPlus, LogIn } from 'lucide-react';
+import { LogOut, UserCircle, UserPlus, LogIn, User } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -18,6 +18,7 @@ const Header: React.FC = () => {
   
   // The custom login page is a WordPress page with the slug 'exam-login' as defined in the PHP snippet
   const loginUrl = `https://www.coding-online.net/exam-login/`;
+  const myAccountUrl = `https://www.coding-online.net/my-account/`;
 
 
   return (
@@ -56,6 +57,16 @@ const Header: React.FC = () => {
                 <UserCircle size={20} />
                 <span className="hidden sm:inline">Welcome, {user.name}</span>
               </div>
+               <a
+                href={myAccountUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Manage your orders, downloads, and addresses on our main site."
+                className="flex items-center space-x-2 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
+              >
+                <User size={16} />
+                <span className="hidden sm:inline">My Account</span>
+              </a>
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg transition duration-200"
