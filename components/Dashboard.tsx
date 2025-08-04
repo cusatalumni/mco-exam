@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -122,6 +123,18 @@ const Dashboard: React.FC = () => {
                         <div className="space-y-3">
                             {processedPurchasedExams.length > 0 ? processedPurchasedExams.map(exam => {
                                 const canTakeTest = exam.status === 'available';
+                                
+                                let buttonContent: React.ReactNode;
+                                if (exam.status === 'passed') {
+                                    buttonContent = <><CheckCircle size={16} className="mr-2"/> Passed</>;
+                                } else if (exam.status === 'attempts_exceeded') {
+                                    buttonContent = 'Attempts Exceeded';
+                                } else if (exam.attemptsMade > 0) {
+                                    buttonContent = 'Retake Exam';
+                                } else {
+                                    buttonContent = 'Start Exam';
+                                }
+
                                 return (
                                      <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                                         <div className="flex-grow">
@@ -151,7 +164,7 @@ const Dashboard: React.FC = () => {
                                                 disabled={!canTakeTest}
                                                 className="flex-grow flex items-center justify-center bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed"
                                             >
-                                                {exam.status === 'passed' ? <><CheckCircle size={16} className="mr-2"/> Passed</> : exam.attemptsMade > 0 ? 'Retake Exam' : 'Start Exam'}
+                                                {buttonContent}
                                             </button>
                                         </div>
                                     </div>
