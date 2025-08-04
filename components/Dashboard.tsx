@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -61,6 +62,11 @@ const Dashboard: React.FC = () => {
         if (examResults.length === 0) return null;
         return Math.max(...examResults.map(r => r.score));
     };
+    
+    const getAttemptsForExam = (examId: string) => {
+        return results.filter(r => r.examId === examId).length;
+    };
+
 
     return (
         <div>
@@ -132,20 +138,31 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center"><FlaskConical className="mr-3 text-cyan-500" /> Practice Tests</h2>
                          <div className="space-y-3">
-                            {practiceExams.length > 0 ? practiceExams.map(exam => (
-                                <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-                                    <div>
-                                        <h3 className="font-bold text-slate-700">{exam.name}</h3>
-                                        <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
+                            {practiceExams.length > 0 ? practiceExams.map(exam => {
+                                const attempts = getAttemptsForExam(exam.id);
+                                const canTakeTest = attempts < 10;
+                                const attemptsLeft = 10 - attempts;
+                                return (
+                                    <div key={exam.id} className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3">
+                                        <div>
+                                            <h3 className="font-bold text-slate-700">{exam.name}</h3>
+                                            <p className="text-sm text-slate-500">{exam.numberOfQuestions} questions</p>
+                                            {canTakeTest ? (
+                                                <p className="text-xs text-slate-500 mt-1">{attemptsLeft} attempt(s) remaining.</p>
+                                            ) : (
+                                                <p className="text-xs text-red-500 mt-1">You have reached the maximum number of attempts.</p>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => navigate(`/test/${exam.id}`)}
+                                            disabled={!canTakeTest}
+                                            className="w-full sm:w-auto bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Start Practice
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => navigate(`/test/${exam.id}`)}
-                                        className="w-full sm:w-auto bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition"
-                                    >
-                                        Start Practice
-                                    </button>
-                                </div>
-                            )) : (
+                                )
+                            }) : (
                                 <p className="text-center py-6 text-slate-500">No practice exams available.</p>
                             )}
                         </div>

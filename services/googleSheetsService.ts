@@ -1,3 +1,4 @@
+
 import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory, User } from '../types';
 import { logoBase64 } from '../assets/logo';
 
@@ -33,13 +34,13 @@ const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
 const ALL_EXAMS: Exam[] = [
     // CPC
     { id: 'exam-cpc-practice', name: 'CPC Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-cpc-cert', name: 'CPC Certification Exam', description: 'A comprehensive test series designed to prepare you for the AAPC CPC (Certified Professional Coder) certification. Includes 150 questions covering all major domains.', price: 150, questionSourceUrl: '', numberOfQuestions: 150, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-cpc-cert', name: 'CPC Certification Exam', description: 'A comprehensive test series designed to prepare you for the AAPC CPC (Certified Professional Coder) certification. Includes 100 questions covering all major domains.', price: 150, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // CCA
     { id: 'exam-cca-practice', name: 'CCA Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-cca-cert', name: 'CCA Certification Exam', description: 'A test series aligned with AHIMA’s CCA (Certified Coding Associate) exam blueprint. Includes 100 questions to test your readiness.', price: 120, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // CCS
     { id: 'exam-ccs-practice', name: 'CCS Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-ccs-cert', name: 'CCS Certification Exam', description: 'A comprehensive test series for the AHIMA CCS (Certified Coding Specialist) credential, focusing on inpatient coding scenarios with 120 questions.', price: 180, questionSourceUrl: '', numberOfQuestions: 120, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-ccs-cert', name: 'CCS Certification Exam', description: 'A comprehensive test series for the AHIMA CCS (Certified Coding Specialist) credential, focusing on inpatient coding scenarios with 100 questions.', price: 180, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // Billing
     { id: 'exam-billing-practice', name: 'Medical Billing Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-billing-cert', name: 'Medical Billing', description: 'A test series covering core concepts in medical billing and reimbursement.', price: 90, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
@@ -48,13 +49,13 @@ const ALL_EXAMS: Exam[] = [
     { id: 'exam-risk-cert', name: 'Risk Adjustment Coding', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC).', price: 110, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
      // ICD
     { id: 'exam-icd-practice', name: 'ICD-10-CM Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-icd-cert', name: 'ICD-10-CM Certification Exam', description: 'A test series focusing on ICD-10-CM diagnosis coding proficiency. Includes 110 questions to master the code set.', price: 130, questionSourceUrl: '', numberOfQuestions: 110, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-icd-cert', name: 'ICD-10-CM Certification Exam', description: 'A test series focusing on ICD-10-CM diagnosis coding proficiency. Includes 100 questions to master the code set.', price: 130, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // CPB
     { id: 'exam-cpb-practice', name: 'CPB Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-cpb-cert', name: 'CPB Certification Exam', description: 'A test series for the AAPC CPB (Certified Professional Biller) certification, covering all aspects of the revenue cycle with 80 questions.', price: 100, questionSourceUrl: '', numberOfQuestions: 80, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-cpb-cert', name: 'CPB Certification Exam', description: 'A test series for the AAPC CPB (Certified Professional Biller) certification, covering all aspects of the revenue cycle with 100 questions.', price: 100, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // CRC
     { id: 'exam-crc-practice', name: 'CRC Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-crc-cert', name: 'CRC Certification Exam', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC) for the CRC certification. Includes 90 specialized questions.', price: 110, questionSourceUrl: '', numberOfQuestions: 90, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-crc-cert', name: 'CRC Certification Exam', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC) for the CRC certification. Includes 100 specialized questions.', price: 110, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // CPMA
     { id: 'exam-cpma-practice', name: 'CPMA Practice Test', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
     { id: 'exam-cpma-cert', name: 'CPMA Certification Exam', description: 'A test series for the AAPC CPMA (Certified Professional Medical Auditor) certification. Includes 100 questions on medical documentation, fraud, and abuse.', price: 160, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
@@ -66,7 +67,7 @@ const ALL_EXAMS: Exam[] = [
     { id: 'exam-cic-cert', name: 'CIC Certification Exam', description: 'A test series for the AAPC CIC (Certified Inpatient Coder) certification, focusing on hospital inpatient facility coding with 100 questions.', price: 170, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
     // MTA
     { id: 'exam-mta-practice', name: 'Medical Terminology & Anatomy Practice', description: '', price: 0, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: '', isPractice: true },
-    { id: 'exam-mta-cert', name: 'Medical Terminology & Anatomy Certification', description: 'A foundational test series covering core medical terminology and anatomy. Essential for all aspiring medical coders. Includes 80 questions.', price: 80, questionSourceUrl: '', numberOfQuestions: 10, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
+    { id: 'exam-mta-cert', name: 'Medical Terminology & Anatomy Certification', description: 'A foundational test series covering core medical terminology and anatomy. Essential for all aspiring medical coders. Includes 100 questions.', price: 80, questionSourceUrl: '', numberOfQuestions: 100, passScore: 70, certificateTemplateId: 'cert-mco-1', isPractice: false },
 ];
 
 // Map broader exams to the granular AI topics

@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -40,11 +42,22 @@ const Test: React.FC = () => {
     }
     setExamConfig(config);
 
-    if (config.price === 0) {
-        useFreeAttempt();
-    }
+    const loadTest = async () => {
+      // Check for practice test attempt limits
+      if (config.isPractice && user) {
+        const userResults = await googleSheetsService.getTestResultsForUser(user);
+        const attempts = userResults.filter(r => r.examId === examId).length;
+        if (attempts >= 10) {
+          toast.error("You have reached the maximum number of attempts for this practice test.", { duration: 4000 });
+          navigate('/dashboard');
+          return;
+        }
+      }
 
-    const fetchQuestions = async () => {
+      if (config.price === 0) {
+          useFreeAttempt();
+      }
+
       try {
         setIsLoading(true);
         const fetchedQuestions = await googleSheetsService.getQuestions(config);
@@ -61,8 +74,9 @@ const Test: React.FC = () => {
         setIsLoading(false);
       }
     };
-    fetchQuestions();
-  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing]);
+
+    loadTest();
+  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing, user]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     setAnswers(prev => new Map(prev).set(questionId, optionIndex));
@@ -76,7 +90,7 @@ const Test: React.FC = () => {
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
