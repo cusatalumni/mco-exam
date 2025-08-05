@@ -1,8 +1,9 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useMemo, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight, ShoppingCart } from 'lucide-react';
+import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight } from 'lucide-react';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
 
@@ -19,51 +20,37 @@ const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType,
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, paidExamIds } = useAuth();
-    const { activeOrg, isInitializing, examProducts } = useAppContext();
+    const { activeOrg, isInitializing } = useAppContext();
     
-    // URLs from the WordPress integration guide for role-based redirection
-    const prodAppUrl = 'https://exams.coding-online.net/';
-    const adminAppUrl = 'https://mco-exam-jkfzdt3bj-manoj-balakrishnans-projects-aa177a85.vercel.app/';
+    useEffect(() => {
+        if (user) {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
 
     const loginUrl = `https://www.coding-online.net/exam-login/`;
-    // Dynamically get the current app's base URL to ensure redirects work in any environment.
-    const appUrl = window.location.origin + window.location.pathname;
+    const appUrl = 'https://exams.coding-online.net';
     
-    const appDashboardPath = '#/dashboard';
+    // FIX: The path needs the hash for the router
+    const appDashboardPath = '/#/dashboard';
     const fullLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
-
-    // Helper function to handle navigation for logged-in users, respecting admin/prod environments
-    const handleNavigation = (path: string) => {
-        if (!user) return;
-        
-        const targetBaseUrl = user.isAdmin ? adminAppUrl : prodAppUrl;
-        const currentHostname = window.location.hostname;
-        const targetHostname = new URL(targetBaseUrl).hostname;
-
-        if (currentHostname === targetHostname) {
-            navigate(path); // We are in the correct environment, use client-side routing
-        } else {
-            window.location.href = targetBaseUrl + '#' + path; // We need to switch environments, do a full redirect
-        }
-    };
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
             toast.error("Please log in to take a practice test.");
-            const practicePath = `#/test/${examId}`;
-            // Construct a dynamic login URL that redirects back to the practice test on the current app instance.
-            const practiceLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + practicePath)}`;
-            window.location.href = practiceLoginUrl;
+            window.location.href = fullLoginUrl;
             return;
         }
-        if (examId) {
-            handleNavigation(`/test/${examId}`);
-        } else {
-            toast.error("Practice exam not configured for this product.");
-        }
+        navigate(`/test/${examId}`);
     };
     
-    if (isInitializing || !activeOrg) {
+    // Create a lookup map for exams for easier and more performant access inside the loop.
+    const examMap = useMemo(() => {
+        if (!activeOrg) return new Map();
+        return new Map(activeOrg.exams.map(exam => [exam.id, exam]));
+    }, [activeOrg]);
+
+    if (isInitializing || !activeOrg || user) { // Also show spinner while redirecting
         return (
             <div className="flex flex-col items-center justify-center h-screen">
                 <Spinner />
@@ -81,12 +68,12 @@ const LandingPage: React.FC = () => {
                     Our platform offers comprehensive practice exams to help you ace your certification. Log in to access your purchased tests.
                 </p>
                 {user ? (
-                    <button
-                        onClick={() => handleNavigation('/dashboard')}
+                    <Link
+                        to="/dashboard"
                         className="bg-cyan-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-lg hover:bg-cyan-700 transition-transform transform hover:scale-105 inline-block"
                     >
                         Go to Dashboard
-                    </button>
+                    </Link>
                 ) : (
                     <div className="flex flex-col items-center">
                         <a
@@ -125,56 +112,68 @@ const LandingPage: React.FC = () => {
             {/* Exam Showcase */}
             <section>
                 <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-800 mb-4">Available Exams</h2>
-                <p className="text-md sm:text-lg text-center text-slate-500 max-w-2xl mx-auto mb-12">Choose from our selection of certification exams, fetched live from our main store.</p>
+                <p className="text-md sm:text-lg text-center text-slate-500 max-w-2xl mx-auto mb-12">Choose from our selection of practice and certification exams to test your skills and prepare for success.</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {examProducts.length > 0 ? examProducts.map(product => {
-                        const isCertUnlocked = user && paidExamIds.includes(product.certification_exam_id);
+                    {activeOrg.examProductCategories.map(category => {
+                        const practiceExam = examMap.get(category.practiceExamId);
+                        const certExam = examMap.get(category.certificationExamId);
+
+                        if (!practiceExam || !certExam) return null;
+
+                        const isCertUnlocked = user && paidExamIds.includes(certExam.id);
                         
+                        const purchaseUrl = certExam.productSlug ? `https://www.coding-online.net/product/${certExam.productSlug}` : '#';
+
                         return (
-                            <div key={product.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col justify-between gap-6 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
-                                <div>
-                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">{product.name}</h3>
-                                    <p className="text-slate-500 mt-2" dangerouslySetInnerHTML={{ __html: product.description }} />
+                            <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
+                                {/* Left side: Info */}
+                                <div className="flex-grow text-center md:text-left">
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">{category.name}</h3>
+                                    <p className="text-slate-500 mt-2 max-w-xl">{category.description}</p>
                                 </div>
                             
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                         <button 
-                                            onClick={() => handleStartPractice(product.practice_exam_id)}
-                                            className="flex justify-center items-center bg-white border border-slate-300 text-slate-600 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors duration-200 text-sm"
+                                {/* Right side: Actions */}
+                                <div className="flex-shrink-0 w-full md:w-auto md:min-w-[280px] space-y-4">
+                                    {/* Practice Test Button */}
+                                    <div className="text-center">
+                                        <button 
+                                            onClick={() => handleStartPractice(practiceExam.id)}
+                                            className="w-full flex justify-center items-center bg-white border border-cyan-600 text-cyan-700 font-bold py-3 px-4 rounded-lg hover:bg-cyan-600 hover:text-white transition-colors duration-200"
                                         >
-                                            <PlayCircle size={16} className="mr-2" />
-                                            <span>Practice</span>
+                                            <PlayCircle size={18} className="mr-2" />
+                                            <span>Practice Test</span>
                                         </button>
-                                        <div className="text-lg font-bold text-slate-700 text-right" dangerouslySetInnerHTML={{ __html: product.price_html }} />
+                                        <p className="text-xs text-slate-500 mt-1">{practiceExam.numberOfQuestions} questions. {user ? `Available` : 'Login to practice.'}</p>
                                     </div>
                             
-                                    {isCertUnlocked ? (
-                                        <button 
-                                            onClick={() => handleNavigation(`/test/${product.certification_exam_id}`)}
-                                            className="w-full flex justify-center items-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition"
-                                        >
-                                            <CheckCircle size={18} className="mr-2"/> Start Certification Exam
-                                        </button>
-                                    ) : (
-                                        <a 
-                                            href={product.purchase_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition"
-                                        >
-                                            <ShoppingCart size={18} className="mr-2" />
-                                            <span>Purchase on Main Site</span>
-                                            <ArrowRight size={18} className="ml-2"/>
-                                        </a>
-                                    )}
+                                    {/* Certification Exam Button */}
+                                    <div className="text-center">
+                                        {isCertUnlocked ? (
+                                            <button 
+                                                onClick={() => navigate(`/test/${certExam.id}`)}
+                                                className="w-full flex justify-center items-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition"
+                                            >
+                                                <CheckCircle size={18} className="mr-2"/> Start Certification
+                                            </button>
+                                        ) : (
+                                            <a 
+                                                href={purchaseUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300"
+                                            >
+                                                <Lock size={18} className="mr-2" />
+                                                <span>Purchase Exam</span>
+                                                <ArrowRight size={18} className="ml-2"/>
+                                            </a>
+                                        )}
+                                        <p className="text-xs text-slate-500 mt-1">{certExam.numberOfQuestions} questions. Certificate on completion.</p>
+                                    </div>
                                 </div>
                             </div>
                         );
-                    }) : (
-                        <p className="text-center text-slate-500 md:col-span-2">No exam products found. Please check back later.</p>
-                    )}
+                    })}
                 </div>
             </section>
         </div>
