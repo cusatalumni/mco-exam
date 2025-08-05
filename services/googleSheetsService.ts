@@ -329,7 +329,7 @@ export const googleSheetsService = {
         const signatureTemplate = organization.certificateTemplates.find(t => t.id === 'cert-mco-1');
 
         if (result && exam && exam.certificate && signatureTemplate) {
-             const canView = (exam.price > 0 && result.score >= exam.passScore) || isAdmin;
+             const canView = (!exam.isPractice && result.score >= exam.passScore) || isAdmin;
              if (canView) {
                 return {
                     certificateNumber: `${result.timestamp}`,
