@@ -1,7 +1,8 @@
 
+
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { googleSheetsService } from '../services/googleSheetsService';
-import type { Organization } from '../types';
+import type { Organization, RecommendedBook } from '../types';
 import toast from 'react-hot-toast';
 
 interface AppContextType {
@@ -9,6 +10,7 @@ interface AppContextType {
   activeOrg: Organization | null;
   isLoading: boolean;
   isInitializing: boolean;
+  suggestedBooks: RecommendedBook[];
   setActiveOrgById: (orgId: string) => void;
   updateActiveOrg: (updatedOrg: Organization) => void;
 }
@@ -20,6 +22,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [activeOrg, setActiveOrg] = useState<Organization | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [suggestedBooks, setSuggestedBooks] = useState<RecommendedBook[]>([]);
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -34,7 +37,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const allOrgs = googleSheetsService.getOrganizations();
       setOrganizations(allOrgs);
       if (allOrgs.length > 0) {
-          setActiveOrg(allOrgs[0]);
+          const org = allOrgs[0];
+          setActiveOrg(org);
+          
+          if (org.masterBookList && org.masterBookList.length > 0) {
+              const shuffled = [...org.masterBookList].sort(() => 0.5 - Math.random());
+              setSuggestedBooks(shuffled.slice(0, 3));
+          }
       }
       setIsInitializing(false);
       setIsLoading(false);
@@ -58,7 +67,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   return (
-    <AppContext.Provider value={{ organizations, activeOrg, isLoading, isInitializing, setActiveOrgById, updateActiveOrg }}>
+    <AppContext.Provider value={{ organizations, activeOrg, isLoading, isInitializing, suggestedBooks, setActiveOrgById, updateActiveOrg }}>
       {children}
     </AppContext.Provider>
   );

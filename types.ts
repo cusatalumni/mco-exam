@@ -1,4 +1,5 @@
 
+
 export interface User {
   id: string;
   name: string;
@@ -44,9 +45,13 @@ export interface CertificateData {
     finalScore: number;
     date: string;
     totalQuestions: number;
-    // Dynamic fields from template
     organization: Organization;
-    template: CertificateTemplate;
+    certificateTitle: string;
+    certificateBody: string;
+    signature1Name: string;
+    signature1Title: string;
+    signature2Name: string;
+    signature2Title: string;
 }
 
 // The structure of the JWT payload coming from the main site
@@ -64,8 +69,7 @@ export interface TokenPayload {
 
 export interface CertificateTemplate {
     id: string;
-    title: string;
-    body: string;
+    // Title and body are now per-exam
     signature1Name: string;
     signature1Title: string;
     signature2Name: string;
@@ -73,6 +77,7 @@ export interface CertificateTemplate {
 }
 
 export interface RecommendedBook {
+    id: string;
     title: string;
     description: string;
     imageUrl: string;
@@ -91,7 +96,10 @@ export interface Exam {
     questionSourceUrl: string;
     numberOfQuestions: number;
     passScore: number;
-    certificateTemplateId: string;
+    certificate?: {
+        title: string;
+        body: string;
+    };
     recommendedBook?: RecommendedBook;
     isPractice: boolean;
     productSlug?: string;
@@ -114,4 +122,5 @@ export interface Organization {
     exams: Exam[];
     examProductCategories: ExamProductCategory[];
     certificateTemplates: CertificateTemplate[];
+    masterBookList: RecommendedBook[];
 }
