@@ -1,102 +1,120 @@
 
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import type { User, TokenPayload } from '../types';
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { googleSheetsService } from '../services/googleSheetsService';
-import type { Organization, RecommendedBook, ExamProduct } from '../types';
-import toast from 'react-hot-toast';
-
-interface AppContextType {
-  organizations: Organization[];
-  activeOrg: Organization | null;
-  isLoading: boolean;
-  isInitializing: boolean;
-  suggestedBooks: RecommendedBook[];
-  examProducts: ExamProduct[];
-  setActiveOrgById: (orgId: string) => void;
-  updateActiveOrg: (updatedOrg: Organization) => void;
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  paidExamIds: string[];
+  isSubscribed: boolean;
+  loginWithToken: (token: string) => void;
+  logout: () => void;
+  useFreeAttempt: () => void;
+  updateUserName: (name: string) => void;
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [activeOrg, setActiveOrg] = useState<Organization | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [suggestedBooks, setSuggestedBooks] = useState<RecommendedBook[]>([]);
-  const [examProducts, setExamProducts] = useState<ExamProduct[]>([]);
-
-  useEffect(() => {
-    const fetchExamProducts = async () => {
-        try {
-          const response = await fetch('https://www.coding-online.net/wp-json/exam-app/v1/products');
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const data = await response.json();
-          setExamProducts(data);
-        } catch (error) {
-          console.error("Could not load exam products from WordPress:", error);
-          toast.error("Could not load exam products from WordPress. Please check your integration settings and WordPress permalinks.", { duration: 6000 });
-        }
-      };
-
-    const initializeApp = async () => {
-      setIsInitializing(true);
-      
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+        const storedUser = localStorage.getItem('examUser');
+        return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+        console.error("Failed to parse user from localStorage", error);
+        return null;
+    }
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('authToken');
+  });
+  const [paidExamIds, setPaidExamIds] = useState<string[]>(() => {
       try {
-        await googleSheetsService.initializeAndCategorizeExams();
-        toast.success("Exams loaded successfully!", { duration: 2000 });
+        const storedIds = localStorage.getItem('paidExamIds');
+        return storedIds ? JSON.parse(storedIds) : [];
       } catch (error) {
-        console.error("Failed to initialize exams:", error);
-        toast.error("Failed to load exams.");
+          console.error("Failed to parse paidExamIds from localStorage", error);
+          return [];
       }
+  });
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
 
-      fetchExamProducts();
-
-      const allOrgs = googleSheetsService.getOrganizations();
-      setOrganizations(allOrgs);
-      if (allOrgs.length > 0) {
-          const org = allOrgs[0];
-          setActiveOrg(org);
-          
-          if (org.masterBookList && org.masterBookList.length > 0) {
-              const shuffled = [...org.masterBookList].sort(() => 0.5 - Math.random());
-              setSuggestedBooks(shuffled.slice(0, 3));
-          }
-      }
-      setIsInitializing(false);
-      setIsLoading(false);
-    };
-
-    initializeApp();
-  }, []);
-
-  const setActiveOrgById = (orgId: string) => {
-    const org = organizations.find(o => o.id === orgId);
-    if (org) {
-        setActiveOrg(org);
+  const loginWithToken = (jwtToken: string) => {
+    try {
+        // A proper JWT has three parts separated by dots.
+        const parts = jwtToken.split('.');
+        if (parts.length !== 3) {
+            throw new Error("Invalid JWT format.");
+        }
+        const payloadBase64Url = parts[1];
+        // The payload is base64url encoded. We need to replace URL-specific characters
+        // and add padding if necessary before using atob.
+        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const decodedPayload = decodeURIComponent(atob(payloadBase64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload: TokenPayload = JSON.parse(decodedPayload);
+        
+        if (payload.user && payload.paidExamIds) {
+            setUser(payload.user);
+            setPaidExamIds(payload.paidExamIds);
+            setToken(jwtToken);
+            localStorage.setItem('examUser', JSON.stringify(payload.user));
+            localStorage.setItem('paidExamIds', JSON.stringify(payload.paidExamIds));
+            localStorage.setItem('authToken', jwtToken);
+            // In the future, subscription status could be passed in the token
+            // setIsSubscribed(payload.isSubscribed || false);
+        } else {
+            throw new Error("Invalid token payload structure.");
+        }
+    } catch(e) {
+        console.error("Failed to decode or parse token:", e);
+        localStorage.removeItem('examUser');
+        localStorage.removeItem('paidExamIds');
+        localStorage.removeItem('authToken');
+        // re-throw to be caught in the callback component
+        throw new Error("Invalid authentication token.");
     }
   };
 
-  const updateActiveOrg = (updatedOrg: Organization) => {
-    setOrganizations(prevOrgs => 
-        prevOrgs.map(org => org.id === updatedOrg.id ? updatedOrg : org)
-    );
-    setActiveOrg(updatedOrg);
+  const logout = () => {
+    setUser(null);
+    setPaidExamIds([]);
+    setToken(null);
+    setIsSubscribed(false);
+    localStorage.removeItem('examUser');
+    localStorage.removeItem('paidExamIds');
+    localStorage.removeItem('authToken');
+    // The redirect will be handled in the Header component
   };
 
+  const useFreeAttempt = () => {
+    // This is a placeholder. In a real application, this could be used
+    // to track or limit the number of free attempts a user has.
+    console.log('User has started a free practice attempt.');
+  };
+
+  const updateUserName = (name: string) => {
+    if (user) {
+      const updatedUser = { ...user, name };
+      setUser(updatedUser);
+      localStorage.setItem('examUser', JSON.stringify(updatedUser));
+    }
+  };
+
+
   return (
-    <AppContext.Provider value={{ organizations, activeOrg, isLoading, isInitializing, suggestedBooks, examProducts, setActiveOrgById, updateActiveOrg }}>
+    <AuthContext.Provider value={{ user, token, paidExamIds, isSubscribed, loginWithToken, logout, useFreeAttempt, updateUserName }}>
       {children}
-    </AppContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useAppContext = (): AppContextType => {
-  const context = useContext(AppContext);
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

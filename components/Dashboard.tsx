@@ -1,29 +1,29 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
 import Spinner from './Spinner';
-import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Star, Zap, CheckCircle, Lock } from 'lucide-react';
+import { BookCopy, History, FlaskConical, Eye, FileText, BarChart, BadgePercent, Trophy, ArrowRight, Home, RefreshCw, Star, Zap, CheckCircle, Lock, Edit, Save } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
-    const history = useHistory();
-    const { user, paidExamIds, isSubscribed } = useAuth();
+    const navigate = useNavigate();
+    const { user, paidExamIds, isSubscribed, updateUserName } = useAuth();
     const { activeOrg } = useAppContext();
     const [results, setResults] = useState<TestResult[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [stats, setStats] = useState({ avgScore: 0, bestScore: 0, examsTaken: 0 });
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [name, setName] = useState(user?.name || '');
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
     const appUrl = 'https://exams.coding-online.net';
-    // FIX: The redirect path must include the hash for the React Router and the full app URL.
     const appDashboardPath = '/#/dashboard';
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
-
 
     useEffect(() => {
         if (!user || !activeOrg) return;
@@ -59,6 +59,16 @@ const Dashboard: React.FC = () => {
         };
         fetchResults();
     }, [user, activeOrg]);
+
+    const handleNameSave = () => {
+        if (name.trim()) {
+            updateUserName(name.trim());
+            setIsEditingName(false);
+            toast.success("Full name updated for your certificate.");
+        } else {
+            toast.error("Name cannot be empty.");
+        }
+    };
 
     const processedPurchasedExams = useMemo(() => {
         if (!activeOrg) return [];
@@ -98,10 +108,35 @@ const Dashboard: React.FC = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
-                <span className="text-slate-500 hidden sm:block">Welcome back, {user?.name}!</span>
+            <div className="flex justify-between items-start mb-6 flex-wrap gap-4">
+                 <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
+                <div className="flex items-center gap-4 bg-slate-100 p-2 rounded-lg">
+                    {isEditingName ? (
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="text" 
+                                value={name} 
+                                onChange={(e) => setName(e.target.value)}
+                                className="border border-slate-300 rounded-md px-2 py-1 text-sm"
+                                placeholder="Enter your full name"
+                            />
+                            <button onClick={handleNameSave} className="p-2 bg-green-500 text-white rounded-md hover:bg-green-600" aria-label="Save name"><Save size={16} /></button>
+                            <button onClick={() => { setIsEditingName(false); setName(user?.name || ''); }} className="p-2 bg-slate-400 text-white rounded-md hover:bg-slate-500" aria-label="Cancel edit">X</button>
+                        </div>
+                    ) : (
+                         <div className="flex items-center gap-2">
+                            <span className="text-slate-600 text-sm sm:text-base">Welcome back, <strong>{user?.name}!</strong></span>
+                            <button onClick={() => setIsEditingName(true)} className="p-1 text-slate-500 hover:text-slate-800" title="Edit your name for the certificate" aria-label="Edit name"><Edit size={16} /></button>
+                        </div>
+                    )}
+                </div>
             </div>
+            {!user?.name.includes(' ') && (
+                <div className="mb-8 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg text-sm text-center">
+                    Please ensure your full name is set correctly for your certificate. Click the edit icon above if needed.
+                </div>
+            )}
+
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content */}
@@ -167,7 +202,7 @@ const Dashboard: React.FC = () => {
                                                 </div>
                                             )}
                                             <button
-                                                onClick={() => history.push(`/test/${exam.id}`)}
+                                                onClick={() => navigate(`/test/${exam.id}`)}
                                                 disabled={!canTakeTest}
                                                 className="flex-grow flex items-center justify-center bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed"
                                             >
@@ -179,7 +214,7 @@ const Dashboard: React.FC = () => {
                             }) : (
                                 <div className="text-center py-6 text-slate-500">
                                     <p>You haven't purchased any certification exams yet.</p>
-                                    <button onClick={() => history.push('/')} className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
+                                    <button onClick={() => navigate('/')} className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
                                         Browse Exams <ArrowRight size={14} />
                                     </button>
                                 </div>
@@ -203,7 +238,7 @@ const Dashboard: React.FC = () => {
                                             )}
                                         </div>
                                         <button
-                                            onClick={() => history.push(`/test/${exam.id}`)}
+                                            onClick={() => navigate(`/test/${exam.id}`)}
                                             disabled={!canTakeTest}
                                             className="w-full sm:w-auto bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
@@ -246,7 +281,7 @@ const Dashboard: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
-                                                    <button onClick={() => history.push(`/results/${result.testId}`)} className="text-cyan-600 hover:text-cyan-800 flex items-center text-xs">
+                                                    <button onClick={() => navigate(`/results/${result.testId}`)} className="text-cyan-600 hover:text-cyan-800 flex items-center text-xs">
                                                         <Eye size={14} className="mr-1" /> Review
                                                     </button>
                                                 </td>
@@ -317,10 +352,10 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Actions</h3>
                         <div className="space-y-3">
-                             <button onClick={() => history.push('/')} className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
+                             <button onClick={() => navigate('/')} className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
                                 <Home size={16} /> Browse All Exams
                             </button>
-                            <button onClick={() => history.push('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
+                            <button onClick={() => navigate('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
                                <FileText size={16} /> Preview Certificate
                             </button>
                         </div>
