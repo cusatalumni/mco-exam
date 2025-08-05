@@ -21,9 +21,8 @@ const Dashboard: React.FC = () => {
     const [name, setName] = useState(user?.name || '');
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
-    const appUrl = 'https://exams.coding-online.net';
-    const appDashboardPath = '/#/dashboard';
-    const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
+    const appDashboardPath = '/dashboard';
+    const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
 
     useEffect(() => {
         if (!user || !activeOrg) return;

@@ -29,16 +29,14 @@ const LandingPage: React.FC = () => {
     }, [user, navigate]);
 
     const loginUrl = `https://www.coding-online.net/exam-login/`;
-    const appUrl = 'https://exams.coding-online.net';
-    
-    // FIX: The path needs the hash for the router
-    const appDashboardPath = '/#/dashboard';
-    const fullLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
             toast.error("Please log in to take a practice test.");
-            window.location.href = fullLoginUrl;
+            // Create a specific deep link for this test. The path should be what comes after the #
+            const appTestPath = `/test/${examId}`;
+            const deepLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appTestPath)}`;
+            window.location.href = deepLoginUrl;
             return;
         }
         navigate(`/test/${examId}`);
@@ -82,9 +80,9 @@ const LandingPage: React.FC = () => {
                         >
                             Get Started Now
                         </a>
-                        <p className="mt-4 text-slate-500">
+                        <p className="text-slate-500 mt-4">
                             Already have an account?{' '}
-                            <a href={fullLoginUrl} className="font-semibold text-cyan-600 hover:underline">
+                            <a href={loginUrl} className="font-semibold text-cyan-600 hover:underline">
                                 Log In
                             </a>
                         </p>
