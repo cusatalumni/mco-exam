@@ -12,7 +12,9 @@ const Header: React.FC = () => {
   const handleLogout = () => {
     logout();
     // Redirect to the external WordPress site's logout page, then back to the app's home
-    const appHomeUrl = 'https://exams.coding-online.net';
+    const appHomeUrl = user?.isAdmin 
+        ? 'https://mco-exam-jkfzdt3bj-manoj-balakrishnans-projects-aa177a85.vercel.app/' 
+        : 'https://exams.coding-online.net/';
     const wpLogoutUrl = `https://www.coding-online.net/wp-login.php?action=logout&redirect_to=${encodeURIComponent(appHomeUrl)}`;
     window.location.href = wpLogoutUrl;
   };

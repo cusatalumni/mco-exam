@@ -19,9 +19,11 @@ const Dashboard: React.FC = () => {
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
-    const appUrl = 'https://exams.coding-online.net';
-    // FIX: The redirect path must include the hash for the React Router and the full app URL.
-    const appDashboardPath = '/#/dashboard';
+    const appUrl = user?.isAdmin 
+        ? 'https://mco-exam-jkfzdt3bj-manoj-balakrishnans-projects-aa177a85.vercel.app/'
+        : 'https://exams.coding-online.net/';
+    
+    const appDashboardPath = '#/dashboard';
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
 
