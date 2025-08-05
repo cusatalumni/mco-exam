@@ -175,23 +175,33 @@ const apiCode = `
 <?php
 /**
  * ===================================================================
- * V1: Custom REST API Endpoint for Exam Products
+ * V2: Custom REST API Endpoint for Exam Products (with CORS fix)
  * ===================================================================
  * This code creates a new endpoint to serve WooCommerce products
- * for the exam application landing page.
+ * for the exam application landing page. Includes CORS headers and
+ * a check for WooCommerce to prevent errors.
  */
 
 // Register the custom REST API route
 add_action('rest_api_init', function () {
+    // Add a check to ensure WooCommerce is active
+    if (!class_exists('WooCommerce')) {
+        return;
+    }
+    
     register_rest_route('exam-app/v1', '/products', array(
         'methods' => 'GET',
-        'callback' => 'annapoorna_get_exam_products',
+        'callback' => 'annapoorna_get_exam_products_callback',
         'permission_callback' => '__return_true' // Publicly accessible
     ));
 });
 
 // Callback function to fetch and format product data
-function annapoorna_get_exam_products() {
+function annapoorna_get_exam_products_callback() {
+    // IMPORTANT: This header allows the exam app to fetch data from your WordPress site.
+    // It's crucial for fixing the "Network response was not ok" error.
+    header('Access-Control-Allow-Origin: *');
+
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => -1,
@@ -199,7 +209,7 @@ function annapoorna_get_exam_products() {
             array(
                 'taxonomy' => 'product_cat',
                 'field'    => 'slug',
-                'terms'    => 'certification-exams', // IMPORTANT: The category slug for your exam products
+                'terms'    => 'certification-exams', // The category slug for your exam products
             ),
         ),
     );
@@ -215,10 +225,9 @@ function annapoorna_get_exam_products() {
         $formatted_products[] = array(
             'id'                     => $product->get_id(),
             'name'                   => $product->get_name(),
-            'description'            => $product->get_short_description(), // Using short description
+            'description'            => $product->get_short_description(),
             'purchase_url'           => $product->get_permalink(),
             'price_html'             => $product->get_price_html(),
-            // These custom fields link the WC Product to the exams in the app
             'practice_exam_id'       => get_post_meta($product->get_id(), 'practice_exam_id', true),
             'certification_exam_id'  => get_post_meta($product->get_id(), 'certification_exam_id', true),
         );
@@ -272,6 +281,28 @@ const Integration = () => {
                     <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
                         <code>{apiCode}</code>
                     </pre>
+                </div>
+
+                 {/* New Troubleshooting Section */}
+                <div className="border border-red-300 bg-red-50 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-red-800 mb-2">3. Troubleshooting API Errors</h2>
+                    <p className="text-slate-700 mb-4">
+                        If you see an error like "Could not load exam products," it often means the app cannot reach the API on your WordPress site. Here are the most common fixes:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-2 pl-4 text-slate-600">
+                        <li>
+                            <strong>Update the API Code:</strong> Make sure you are using the latest version of the API code provided above, which includes a fix for cross-origin (CORS) errors.
+                        </li>
+                        <li>
+                            <strong>Check WordPress Permalinks:</strong> This is the most common cause. Your WordPress REST API might not work if your permalinks are set to "Plain".
+                            <ul className="list-disc list-inside pl-6 mt-2 space-y-1 bg-white p-3 rounded-md">
+                                <li>Go to your WordPress Admin Dashboard.</li>
+                                <li>Navigate to <strong>Settings &rarr; Permalinks</strong>.</li>
+                                <li>Select any option other than "Plain" (we recommend <strong>"Post name"</strong>).</li>
+                                <li>Click <strong>"Save Changes"</strong>. This flushes the rewrite rules and often fixes the API.</li>
+                            </ul>
+                        </li>
+                    </ol>
                 </div>
             </div>
         </div>
