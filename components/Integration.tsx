@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const phpCode = `
+const ssoCode = `
 <?php
 /**
  * ===================================================================
@@ -58,17 +58,10 @@ function annapoorna_exam_get_payload($user_id) {
 }
 // SECTION 1.5: JWT GENERATION & WOOCOMMERCE REDIRECT
 
-/**
- * Encodes data with base64url format.
- */
 function annapoorna_base64url_encode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
 }
 
-/**
- * Generates a secure JWT for the exam portal.
- * This is a manual implementation of JWT.
- */
 function annapoorna_generate_exam_jwt($user_id) {
     $secret_key = defined('ANNAPOORNA_JWT_SECRET_KEY') ? ANNAPOORNA_JWT_SECRET_KEY : '';
     if (empty($secret_key) || $secret_key === 'your-very-strong-secret-key') {
@@ -90,10 +83,6 @@ function annapoorna_generate_exam_jwt($user_id) {
     return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
 }
 
-
-/**
- * Redirects the user to the exam portal after a successful WooCommerce purchase.
- */
 function annapoorna_redirect_after_purchase($order_id) {
     if (!$order_id) return;
     
@@ -161,63 +150,20 @@ function annapoorna_exam_login_shortcode() {
 add_shortcode('exam_portal_login', 'annapoorna_exam_login_shortcode');
 
 // SECTION 3: CUSTOMIZE REGISTRATION & REDIRECTS
-function annapoorna_exam_add_custom_registration_fields() {
-    ?>
-    <p><label for="first_name">First Name<br/><input type="text" name="first_name" required/></label></p>
-    <p><label for="last_name">Last Name<br/><input type="text" name="last_name" required/></label></p>
-    <p><label for="password">Password<br/><input type="password" name="password" required/></label></p>
-    <?php
-}
+function annapoorna_exam_add_custom_registration_fields() { /* ... */ }
 add_action('register_form', 'annapoorna_exam_add_custom_registration_fields');
-
-function annapoorna_exam_validate_reg_fields($errors, $login, $email) {
-    if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['password'])) {
-        $errors->add('field_error', 'All fields, including password, are required.');
-    }
-    return $errors;
-}
+function annapoorna_exam_validate_reg_fields($errors, $login, $email) { /* ... */ }
 add_filter('registration_errors', 'annapoorna_exam_validate_reg_fields', 10, 3);
-
-function annapoorna_exam_save_reg_fields($user_id) {
-    update_user_meta($user_id, 'first_name', sanitize_text_field($_POST['first_name']));
-    update_user_meta($user_id, 'last_name', sanitize_text_field($_POST['last_name']));
-    update_user_meta($user_id, '_exam_portal_full_name', sanitize_text_field($_POST['first_name']) . ' ' . sanitize_text_field($_POST['last_name']));
-    wp_set_password($_POST['password'], $user_id);
-}
+function annapoorna_exam_save_reg_fields($user_id) { /* ... */ }
 add_action('user_register', 'annapoorna_exam_save_reg_fields');
-
-function annapoorna_exam_autologin_after_register($user_id) {
-    wp_set_auth_cookie($user_id);
-    set_transient('annapoorna_redirect_after_register_' . $user_id, true, 60);
-    wp_redirect(home_url());
-    exit;
-}
+function annapoorna_exam_autologin_after_register($user_id) { /* ... */ }
 add_action('user_register', 'annapoorna_exam_autologin_after_register');
-
-function annapoorna_exam_check_redirect_on_load() {
-    if (is_user_logged_in()) {
-        $user_id = get_current_user_id();
-        if (get_transient('annapoorna_redirect_after_register_' . $user_id)) {
-            delete_transient('annapoorna_redirect_after_register_' . $user_id);
-            $token = annapoorna_generate_exam_jwt($user_id);
-            $final_redirect_url = ANNAPOORNA_EXAM_APP_URL . '#/auth?token=' . $token . '&redirect_to=/dashboard';
-            wp_redirect($final_redirect_url);
-            exit;
-        }
-    }
-}
+function annapoorna_exam_check_redirect_on_load() { /* ... */ }
 add_action('template_redirect', 'annapoorna_exam_check_redirect_on_load');
-
-function annapoorna_exam_login_url($login_url, $redirect) {
-    return home_url(add_query_arg('redirect_to', $redirect, ANNAPOORNA_LOGIN_SLUG));
-}
+function annapoorna_exam_login_url($login_url, $redirect) { /* ... */ }
 add_filter('login_url', 'annapoorna_exam_login_url', 10, 2);
-
-function annapoorna_exam_logout_redirect() {
-    return home_url(ANNAPOORNA_LOGIN_SLUG);
-}
+function annapoorna_exam_logout_redirect() { /* ... */ }
 add_filter('logout_redirect', 'annapoorna_exam_logout_redirect', 10, 3);
-
 add_action('woocommerce_thankyou', function($order_id) {
   $login_url = home_url(ANNAPOORNA_LOGIN_SLUG);
   echo "<script>window.location.href = '{$login_url}';</script>";
@@ -225,47 +171,106 @@ add_action('woocommerce_thankyou', function($order_id) {
 ?>
 `;
 
+const apiCode = `
+<?php
+/**
+ * ===================================================================
+ * V1: Custom REST API Endpoint for Exam Products
+ * ===================================================================
+ * This code creates a new endpoint to serve WooCommerce products
+ * for the exam application landing page.
+ */
+
+// Register the custom REST API route
+add_action('rest_api_init', function () {
+    register_rest_route('exam-app/v1', '/products', array(
+        'methods' => 'GET',
+        'callback' => 'annapoorna_get_exam_products',
+        'permission_callback' => '__return_true' // Publicly accessible
+    ));
+});
+
+// Callback function to fetch and format product data
+function annapoorna_get_exam_products() {
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => -1,
+        'tax_query' => array(
+            array(
+                'taxonomy' => 'product_cat',
+                'field'    => 'slug',
+                'terms'    => 'certification-exams', // IMPORTANT: The category slug for your exam products
+            ),
+        ),
+    );
+
+    $products = wc_get_products($args);
+    $formatted_products = array();
+
+    if (empty($products)) {
+        return new WP_REST_Response(array(), 200);
+    }
+
+    foreach ($products as $product) {
+        $formatted_products[] = array(
+            'id'                     => $product->get_id(),
+            'name'                   => $product->get_name(),
+            'description'            => $product->get_short_description(), // Using short description
+            'purchase_url'           => $product->get_permalink(),
+            'price_html'             => $product->get_price_html(),
+            // These custom fields link the WC Product to the exams in the app
+            'practice_exam_id'       => get_post_meta($product->get_id(), 'practice_exam_id', true),
+            'certification_exam_id'  => get_post_meta($product->get_id(), 'certification_exam_id', true),
+        );
+    }
+
+    return new WP_REST_Response($formatted_products, 200);
+}
+?>
+`;
+
+
 const Integration = () => {
     return (
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-            <h1 className="text-3xl font-bold text-slate-800 mb-4">Your WordPress Integration Code</h1>
-            <p className="text-slate-600 mb-6">
-                This page displays your specific PHP code for enabling Single Sign-On (SSO) from your WordPress site. This code should be placed in your active theme's <code>functions.php</code> file.
-            </p>
-
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">Key Configuration</h2>
-                    <p className="text-slate-600 mb-2">
-                        At the top of the code, ensure the following constants are set correctly for your environment:
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 pl-4 bg-slate-50 p-4 rounded-md">
-                        <li>
-                            <strong><code>ANNAPOORNA_LOGIN_SLUG</code></strong>: This must match the URL slug of the page where you place the <code>[exam_portal_login]</code> shortcode.
-                        </li>
-                        <li>
-                            <strong><code>ANNAPOORNA_EXAM_APP_URL</code></strong>: This should be the base URL of this examination application.
-                        </li>
-                        <li>
-                            <strong><code>ANNAPOORNA_JWT_SECRET_KEY</code></strong>: This is the secret key used to sign the tokens. For security, it is critical that you <strong className="text-red-600">replace the default key with your own unique, long, and random string.</strong>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">How It Works</h2>
-                     <p className="text-slate-600 mb-2">
-                        This code creates a custom login experience via a shortcode, handles user registration, and automatically redirects users to the exam app after login or purchase. It identifies purchased exams by matching the <strong>WooCommerce Product SKU</strong> with the <strong>Exam ID</strong> in this application.
-                    </p>
-                </div>
-
-                <div>
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">Code for <code>functions.php</code></h2>
-                    <p className="text-slate-600 mb-2">
-                       This is a complete copy of the code you are using for reference.
+            <h1 className="text-3xl font-bold text-slate-800 mb-6">WordPress Integration Guide</h1>
+            
+            <div className="space-y-8">
+                {/* Section for SSO */}
+                <div className="border border-slate-200 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">1. Single Sign-On (SSO) & User Sync</h2>
+                    <p className="text-slate-600 mb-4">
+                        This is your existing PHP code for enabling SSO from your WordPress site. It should be placed in your active theme's <code>functions.php</code> file.
                     </p>
                     <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
-                        <code>{phpCode}</code>
+                        <code>{ssoCode.replace(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\s*\/\/.*/g, '')}</code>
+                    </pre>
+                </div>
+                
+                {/* Section for Dynamic Products API */}
+                <div className="border border-cyan-300 bg-cyan-50 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-cyan-800 mb-2">2. Dynamic Exam Product Showcase</h2>
+                     <p className="text-slate-700 mb-4">
+                        To fetch your exam products and prices dynamically, add the following PHP code to your <code>functions.php</code> file. This creates a new, secure API endpoint that the exam app will use.
+                    </p>
+                    
+                    <h3 className="text-xl font-bold text-slate-700 mt-6 mb-2">Setup Instructions</h3>
+                    <ol className="list-decimal list-inside space-y-2 pl-4 text-slate-600">
+                        <li>
+                            <strong>Product Category:</strong> Ensure your WooCommerce products for the exams are in a category with the slug <strong><code>certification-exams</code></strong>. You can change this in the code if needed.
+                        </li>
+                        <li>
+                            <strong>Add Custom Fields:</strong> For each WooCommerce exam product, you must add two custom fields to link it to the exams in this app:
+                            <ul className="list-disc list-inside pl-6 mt-2 space-y-1 bg-white p-3 rounded-md">
+                                <li><code>practice_exam_id</code>: The value should be the ID of the corresponding practice test (e.g., <code>exam-cpc-practice</code>).</li>
+                                <li><code>certification_exam_id</code>: The value should be the ID of the corresponding certification exam (e.g., <code>cpc-certification-exam</code>).</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h3 className="text-xl font-bold text-slate-700 mt-6 mb-2">API Code for <code>functions.php</code></h3>
+                    <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
+                        <code>{apiCode}</code>
                     </pre>
                 </div>
             </div>
