@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
@@ -26,7 +26,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => (
 
 const Certificate: React.FC = () => {
     const { testId = 'sample' } = useParams<{ testId?: string }>();
-    const navigate = useNavigate();
+    const history = useHistory();
     const { user } = useAuth();
     const { activeOrg } = useAppContext();
     const [certData, setCertData] = useState<CertificateData | null>(null);
@@ -38,7 +38,7 @@ const Certificate: React.FC = () => {
         const fetchCertificateData = async () => {
             if (!user || !activeOrg) {
                 toast.error("Invalid data. Cannot generate certificate.");
-                navigate('/dashboard');
+                history.push('/dashboard');
                 return;
             }
             
@@ -49,18 +49,18 @@ const Certificate: React.FC = () => {
                     setCertData(data);
                 } else {
                     toast.error("Certificate not earned for this test.");
-                    navigate('/dashboard');
+                    history.push('/dashboard');
                 }
             } catch (error) {
                 toast.error("Failed to load certificate data.");
-                navigate('/dashboard');
+                history.push('/dashboard');
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchCertificateData();
-    }, [testId, user, activeOrg, navigate]);
+    }, [testId, user, activeOrg, history]);
 
     const handleDownload = async () => {
         if (!certificateRef.current) return;
@@ -97,14 +97,14 @@ const Certificate: React.FC = () => {
         return <div className="text-center p-8"><p>No certificate data available.</p></div>;
     }
 
-    const { organization, certificateTitle, certificateBody, signature1Name, signature1Title } = certData;
-    const bodyText = certificateBody.replace('{finalScore}', certData.finalScore.toString());
+    const { organization, template } = certData;
+    const bodyText = template.body.replace('{finalScore}', certData.finalScore.toString());
 
     return (
         <div className="max-w-5xl mx-auto bg-slate-100 p-4 sm:p-6 rounded-lg">
             <div className="flex justify-between items-center mb-6">
                  <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => history.push('/dashboard')}
                     className="flex items-center space-x-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg transition"
                 >
                     <ArrowLeft size={16} />
@@ -134,8 +134,8 @@ const Certificate: React.FC = () => {
                     </div>
                                         
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
-                        <p className="text-xl text-slate-600 tracking-wider">Certificate of Achievement</p>
-                        <p className="text-4xl font-bold text-teal-800 tracking-wide mt-1">{certificateTitle}</p>
+                        <p className="text-xl text-slate-600 tracking-wider">Certificate of Achievement in</p>
+                        <p className="text-4xl font-bold text-teal-800 tracking-wide mt-1">{template.title}</p>
                         
                         <div className="w-1/3 mx-auto my-4 border-b border-slate-400"></div>
 
@@ -153,15 +153,15 @@ const Certificate: React.FC = () => {
                             <div className="text-center w-72">
                                <img 
                                   src={signatureBase64} 
-                                  alt={`${signature1Name} Signature`}
+                                  alt={`${template.signature1Name} Signature`}
                                   className="h-16 mx-auto object-contain mb-2"
                                 />
                                <div className="border-t border-slate-400 pt-2">
                                   <p className="text-sm text-slate-700 tracking-wider">
-                                    <strong>{signature1Name}</strong>
+                                    <strong>{template.signature1Name}</strong>
                                   </p>
                                   <p className="text-xs text-slate-600 tracking-wider">
-                                    {signature1Title}
+                                    {template.signature1Title}
                                   </p>
                                </div>
                             </div>

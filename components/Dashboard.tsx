@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult } from '../types';
@@ -10,7 +10,7 @@ import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
-    const navigate = useNavigate();
+    const history = useHistory();
     const { user, paidExamIds, isSubscribed } = useAuth();
     const { activeOrg } = useAppContext();
     const [results, setResults] = useState<TestResult[]>([]);
@@ -19,11 +19,9 @@ const Dashboard: React.FC = () => {
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
-    // Dynamically get the current app's base URL to ensure redirects work in any environment.
-    const appUrl = window.location.origin + window.location.pathname;
-    
-    const appDashboardPath = '#/dashboard';
-    // Construct the sync URL with a dynamic redirect back to the current app instance.
+    const appUrl = 'https://exams.coding-online.net';
+    // FIX: The redirect path must include the hash for the React Router and the full app URL.
+    const appDashboardPath = '/#/dashboard';
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
 
@@ -65,9 +63,8 @@ const Dashboard: React.FC = () => {
     const processedPurchasedExams = useMemo(() => {
         if (!activeOrg) return [];
         
-        // Match purchased exams using the exam ID, which corresponds to the WooCommerce SKU.
         return activeOrg.exams
-            .filter(e => !e.isPractice && paidExamIds.includes(e.id))
+            .filter(e => paidExamIds.includes(e.id) && !e.isPractice)
             .map(exam => {
                 const examResults = results.filter(r => r.examId === exam.id);
                 const attemptsMade = examResults.length;
@@ -170,7 +167,7 @@ const Dashboard: React.FC = () => {
                                                 </div>
                                             )}
                                             <button
-                                                onClick={() => navigate(`/test/${exam.id}`)}
+                                                onClick={() => history.push(`/test/${exam.id}`)}
                                                 disabled={!canTakeTest}
                                                 className="flex-grow flex items-center justify-center bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed"
                                             >
@@ -182,7 +179,7 @@ const Dashboard: React.FC = () => {
                             }) : (
                                 <div className="text-center py-6 text-slate-500">
                                     <p>You haven't purchased any certification exams yet.</p>
-                                    <button onClick={() => navigate('/')} className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
+                                    <button onClick={() => history.push('/')} className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
                                         Browse Exams <ArrowRight size={14} />
                                     </button>
                                 </div>
@@ -206,7 +203,7 @@ const Dashboard: React.FC = () => {
                                             )}
                                         </div>
                                         <button
-                                            onClick={() => navigate(`/test/${exam.id}`)}
+                                            onClick={() => history.push(`/test/${exam.id}`)}
                                             disabled={!canTakeTest}
                                             className="w-full sm:w-auto bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
@@ -249,7 +246,7 @@ const Dashboard: React.FC = () => {
                                                     </span>
                                                 </td>
                                                 <td className="p-3">
-                                                    <button onClick={() => navigate(`/results/${result.testId}`)} className="text-cyan-600 hover:text-cyan-800 flex items-center text-xs">
+                                                    <button onClick={() => history.push(`/results/${result.testId}`)} className="text-cyan-600 hover:text-cyan-800 flex items-center text-xs">
                                                         <Eye size={14} className="mr-1" /> Review
                                                     </button>
                                                 </td>
@@ -320,10 +317,10 @@ const Dashboard: React.FC = () => {
                     <div className="bg-white p-6 rounded-xl shadow-md">
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Actions</h3>
                         <div className="space-y-3">
-                             <button onClick={() => navigate('/')} className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
+                             <button onClick={() => history.push('/')} className="w-full bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm flex items-center justify-center gap-2">
                                 <Home size={16} /> Browse All Exams
                             </button>
-                            <button onClick={() => navigate('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
+                            <button onClick={() => history.push('/certificate/sample')} className="w-full bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-lg hover:bg-slate-200 transition text-sm flex items-center justify-center gap-2">
                                <FileText size={16} /> Preview Certificate
                             </button>
                         </div>

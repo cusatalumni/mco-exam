@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { Question, UserAnswer, Exam } from '../types';
@@ -17,7 +17,7 @@ const formatTime = (seconds: number) => {
 
 const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
-  const navigate = useNavigate();
+  const history = useHistory();
   const { user, useFreeAttempt, isSubscribed } = useAuth();
   const { activeOrg, isInitializing } = useAppContext();
 
@@ -41,21 +41,21 @@ const Test: React.FC = () => {
 
     if (!examId || !activeOrg) {
         toast.error("Exam configuration missing.");
-        navigate('/dashboard');
+        history.push('/dashboard');
         return;
     }
 
     const config = googleSheetsService.getExamConfig(activeOrg.id, examId);
     if (!config) {
         toast.error("Could not find the specified exam.");
-        navigate('/dashboard');
+        history.push('/dashboard');
         return;
     }
     setExamConfig(config);
 
     const loadTest = async () => {
       if (!user) {
-          navigate('/');
+          history.push('/');
           return;
       }
 
@@ -67,7 +67,7 @@ const Test: React.FC = () => {
           const practiceAttempts = userResults.filter(r => practiceExamIds.has(r.examId)).length;
           if (practiceAttempts >= 10) {
             toast.error("You have used all 10 of your free practice attempts.", { duration: 4000 });
-            navigate('/dashboard');
+            history.push('/dashboard');
             return;
           }
         }
@@ -78,12 +78,12 @@ const Test: React.FC = () => {
         
         if (hasPassed) {
             toast.error("You have already passed this exam.", { duration: 4000 });
-            navigate('/dashboard');
+            history.push('/dashboard');
             return;
         }
         if (certExamResults.length >= 3) {
             toast.error("You have used all 3 attempts for this exam.", { duration: 4000 });
-            navigate('/dashboard');
+            history.push('/dashboard');
             return;
         }
       }
@@ -93,7 +93,7 @@ const Test: React.FC = () => {
         const fetchedQuestions = await googleSheetsService.getQuestions(config);
         if (fetchedQuestions.length === 0) {
             toast.error("Could not load questions for this exam.");
-            navigate('/dashboard');
+            history.push('/dashboard');
             return;
         }
         setQuestions(fetchedQuestions);
@@ -122,7 +122,7 @@ const Test: React.FC = () => {
 
       } catch (error) {
         toast.error('Failed to load the test.');
-        navigate('/dashboard');
+        history.push('/dashboard');
       } finally {
         setIsLoading(false);
       }
@@ -132,7 +132,7 @@ const Test: React.FC = () => {
     return () => {
         if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     }
-  }, [examId, activeOrg, navigate, useFreeAttempt, isInitializing, user, isSubscribed]);
+  }, [examId, activeOrg, history, useFreeAttempt, isInitializing, user, isSubscribed]);
 
   const handleAnswerSelect = (questionId: number, optionIndex: number) => {
     setAnswers(prev => new Map(prev).set(questionId, optionIndex));
@@ -181,7 +181,7 @@ const Test: React.FC = () => {
     
     if(!user || !activeOrg || !examId) {
         toast.error("Cannot submit: user or exam context is missing.");
-        navigate('/');
+        history.push('/');
         return;
     }
 
@@ -197,7 +197,7 @@ const Test: React.FC = () => {
         
         const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers, questions);
         toast.success("Test submitted successfully!");
-        navigate(`/results/${result.testId}`);
+        history.push(`/results/${result.testId}`);
 
     } catch(error) {
         toast.error("Failed to submit the test. Please try again.");

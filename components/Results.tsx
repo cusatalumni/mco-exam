@@ -1,7 +1,6 @@
 
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { googleSheetsService } from '../services/googleSheetsService';
 import type { TestResult, Exam, RecommendedBook } from '../types';
@@ -12,7 +11,7 @@ import { Check, X, FileDown, BookUp, ShieldCheck } from 'lucide-react';
 
 const Results: React.FC = () => {
     const { testId } = useParams<{ testId: string }>();
-    const navigate = useNavigate();
+    const history = useHistory();
     const { user } = useAuth();
     const { activeOrg } = useAppContext();
     
@@ -23,7 +22,7 @@ const Results: React.FC = () => {
     useEffect(() => {
         if (!testId || !user || !activeOrg) {
             toast.error("Required data is missing.");
-            navigate('/dashboard');
+            history.push('/dashboard');
             return;
         }
 
@@ -38,42 +37,56 @@ const Results: React.FC = () => {
                         setExam(examConfig);
                     } else {
                         toast.error("Could not find the configuration for this exam.");
-                        navigate('/dashboard');
+                        history.push('/dashboard');
                     }
                 } else {
                     toast.error("Could not find your test results.");
-                    navigate('/dashboard');
+                    history.push('/dashboard');
                 }
             } catch (error) {
                 toast.error("Failed to load results.");
-                navigate('/dashboard');
+                history.push('/dashboard');
             } finally {
                 setIsLoading(false);
             }
         };
         fetchResultAndExam();
-    }, [testId, user, activeOrg, navigate]);
+    }, [testId, user, activeOrg, history]);
     
     const getGeoAffiliateLink = (book: RecommendedBook): { url: string; domainName: string } => {
         const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         let domainKey: keyof RecommendedBook['affiliateLinks'] = 'com';
         let domainName = 'Amazon.com';
 
-        const gccTimezones = [ 'Asia/Dubai', 'Asia/Riyadh', 'Asia/Qatar', 'Asia/Bahrain', 'Asia/Kuwait', 'Asia/Muscat' ];
+        // List of IANA timezone names for GCC countries
+        const gccTimezones = [
+            'Asia/Dubai',       // UAE
+            'Asia/Riyadh',      // Saudi Arabia
+            'Asia/Qatar',       // Qatar
+            'Asia/Bahrain',     // Bahrain
+            'Asia/Kuwait',      // Kuwait
+            'Asia/Muscat'       // Oman
+        ];
         
+        // Check for India
         if (timeZone.includes('Asia/Kolkata') || timeZone.includes('Asia/Calcutta')) {
             domainKey = 'in';
             domainName = 'Amazon.in';
         } 
+        // Check for GCC countries
         else if (gccTimezones.some(tz => timeZone === tz)) {
             domainKey = 'ae';
             domainName = 'Amazon.ae';
         }
-        
+        // Default is 'com' which is already set
+
         const url = book.affiliateLinks[domainKey];
+
+        // Fallback to .com if a specific regional link is missing for some reason
         if (!url) {
             return { url: book.affiliateLinks.com, domainName: 'Amazon.com' };
         }
+
         return { url, domainName };
     };
 
@@ -87,6 +100,7 @@ const Results: React.FC = () => {
     }
     
     const isPass = result.score >= exam.passScore;
+    const isPaid = exam.price > 0;
     const scoreColor = isPass ? 'text-green-600' : 'text-red-600';
     const isAdmin = !!user?.isAdmin;
 
@@ -98,15 +112,15 @@ const Results: React.FC = () => {
                 <p className="text-lg text-slate-600">Your Score</p>
                 <p className={`text-7xl font-bold ${scoreColor}`}>{result.score}%</p>
                 <p className="text-slate-500 mt-2">({result.correctCount} out of {result.totalQuestions} correct)</p>
-                {!exam.isPractice && (
+                {isPaid && (
                     <p className={`mt-4 text-xl font-semibold ${scoreColor}`}>{isPass ? 'Congratulations, you passed!' : 'Unfortunately, you did not pass.'}</p>
                 )}
             </div>
 
-            {(!exam.isPractice && isPass) && (
+            {(isPaid && isPass) && (
                 <div className="text-center mb-8">
                     <button
-                        onClick={() => navigate(`/certificate/${result.testId}`)}
+                        onClick={() => history.push(`/certificate/${result.testId}`)}
                         className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105"
                     >
                         <FileDown size={20} />
@@ -115,10 +129,10 @@ const Results: React.FC = () => {
                 </div>
             )}
 
-            {isAdmin && !exam.isPractice && (
+            {isAdmin && (
                 <div className="text-center mb-8">
                     <button
-                        onClick={() => navigate(`/certificate/${result.testId}`)}
+                        onClick={() => history.push(`/certificate/${result.testId}`)}
                         className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105"
                     >
                         <ShieldCheck size={20} />
@@ -127,33 +141,41 @@ const Results: React.FC = () => {
                 </div>
             )}
             
-            {exam.recommendedBook && (
-                <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg mb-8">
-                    <h2 className="text-xl font-semibold text-blue-800 mb-4">Recommended Study Material</h2>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-left">
-                        <img src={exam.recommendedBook.imageUrl} alt={exam.recommendedBook.title} className="w-32 h-auto rounded-lg shadow-md object-cover" />
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-800">{exam.recommendedBook.title}</h3>
-                            <p className="text-slate-600 mt-1 mb-4 max-w-md">{exam.recommendedBook.description}</p>
-                            <a 
-                                href={getGeoAffiliateLink(exam.recommendedBook).url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                aria-label={`Buy ${exam.recommendedBook.title} on ${getGeoAffiliateLink(exam.recommendedBook).domainName}`}
-                                className="inline-flex items-center space-x-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105"
-                            >
-                                <BookUp size={20} />
-                                <span>Buy on {getGeoAffiliateLink(exam.recommendedBook).domainName}</span>
-                            </a>
-                            <p className="text-xs text-slate-500 mt-2 max-w-md">
-                                As an Amazon Associate, we earn from qualifying purchases. This is a geo-targeted affiliate link.
-                            </p>
+            {isPaid ? (
+                 exam.recommendedBook ? (() => {
+                    const { url, domainName } = getGeoAffiliateLink(exam.recommendedBook!);
+                    return (
+                        <div className="text-center p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h2 className="text-xl font-semibold text-blue-800 mb-4">Recommended Study Material</h2>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-left">
+                                <img src={exam.recommendedBook!.imageUrl} alt={exam.recommendedBook!.title} className="w-32 h-auto rounded-lg shadow-md object-cover" />
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-800">{exam.recommendedBook!.title}</h3>
+                                    <p className="text-slate-600 mt-1 mb-4 max-w-md">{exam.recommendedBook!.description}</p>
+                                    <a 
+                                        href={url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        aria-label={`Buy ${exam.recommendedBook!.title} on ${domainName}`}
+                                        className="inline-flex items-center space-x-2 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105"
+                                    >
+                                        <BookUp size={20} />
+                                        <span>Buy on {domainName}</span>
+                                    </a>
+                                    <p className="text-xs text-slate-500 mt-2 max-w-md">
+                                        As an Amazon Associate, we earn from qualifying purchases. This is a geo-targeted affiliate link.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
+                    );
+                })() : (
+                    <div className="text-center p-6 bg-slate-50 border border-slate-200 rounded-lg">
+                         <h2 className="text-xl font-semibold text-slate-700">Answer Review Not Available</h2>
+                         <p className="text-slate-600 max-w-2xl mx-auto mt-2">To protect the integrity of the certification exam and ensure fairness for all candidates, a detailed answer review is not provided for paid tests.</p>
                     </div>
-                </div>
-            )}
-            
-            {exam.isPractice ? (
+                )
+            ) : (
                 <div>
                     <h2 className="text-2xl font-semibold text-slate-700 mb-4">Answer Review</h2>
                     <div className="space-y-6">
@@ -181,16 +203,11 @@ const Results: React.FC = () => {
                         ))}
                     </div>
                 </div>
-            ) : (
-                 <div className="text-center p-6 bg-slate-50 border border-slate-200 rounded-lg">
-                     <h2 className="text-xl font-semibold text-slate-700">Answer Review Not Available</h2>
-                     <p className="text-slate-600 max-w-2xl mx-auto mt-2">To protect the integrity of the certification exam and ensure fairness for all candidates, a detailed answer review is not provided for paid tests.</p>
-                </div>
             )}
 
             <div className="text-center mt-8">
                 <button 
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => history.push('/dashboard')}
                     className="bg-slate-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-slate-700 transition"
                 >
                     Back to Dashboard
