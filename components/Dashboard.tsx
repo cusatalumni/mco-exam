@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
         if (!activeOrg) return [];
         
         return activeOrg.exams
-            .filter(e => paidExamIds.includes(e.id) && !e.isPractice)
+            .filter(e => !e.isPractice && e.productSlug && paidExamIds.includes(e.productSlug))
             .map(exam => {
                 const examResults = results.filter(r => r.examId === exam.id);
                 const attemptsMade = examResults.length;
