@@ -1,9 +1,15 @@
+
+
+import React from 'react';
+
+const ssoCode = `
+<?php
 /**
  * ===================================================================
- * V14: Role-Based URL Redirection for Admins
+ * V15: More Reliable Admin Detection
  * ===================================================================
- * This version redirects administrators to a separate testing URL,
- * while regular users go to the production URL.
+ * This version uses user_can('manage_options') for a more robust way
+ * of identifying administrators, ensuring redirection works correctly.
  */
 
 // --- CONFIGURATION ---
@@ -20,8 +26,8 @@ function annapoorna_get_redirect_url_for_user($user_id) {
     if (!$user_id) {
         return ANNAPOORNA_PROD_APP_URL; // Default to prod if no user
     }
-    $user = get_userdata($user_id);
-    if ($user && in_array('administrator', (array) $user->roles)) {
+    // Use user_can for a more reliable check for administrator-level capabilities
+    if (user_can($user_id, 'manage_options')) {
         return ANNAPOORNA_ADMIN_APP_URL;
     }
     return ANNAPOORNA_PROD_APP_URL;
@@ -32,7 +38,7 @@ function annapoorna_exam_get_payload($user_id) {
     $user = get_userdata($user_id);
     if (!$user) return null;
 
-    $is_admin = in_array('administrator', (array) $user->roles);
+    $is_admin = user_can($user_id, 'manage_options');
 
     $user_full_name = get_user_meta($user_id, '_exam_portal_full_name', true);
     if (empty($user_full_name)) { $user_full_name = trim($user->first_name . ' ' . $user->last_name); }
@@ -169,10 +175,11 @@ const apiCode = `
 <?php
 /**
  * ===================================================================
- * V3: Custom REST API Endpoint for Exam Products (Robust Version)
+ * V4: Custom REST API Endpoint for Exam Products (Most Robust Version)
  * ===================================================================
- * This version improves reliability by ensuring CORS headers are sent
- * and by adding a check for WooCommerce to prevent fatal errors.
+ * This version uses the recommended 'rest_pre_serve_request' filter
+ * to correctly apply CORS headers, which is the most reliable way to
+ * fix the "Network response was not ok" error.
  */
 
 // Callback function to fetch and format product data
@@ -211,25 +218,102 @@ function annapoorna_get_exam_products_callback() {
     return new WP_REST_Response($formatted_products, 200);
 }
 
-
-// Register the custom REST API route and set headers
-add_action('rest_api_init', function () {
+// Function to register the custom REST API route
+function annapoorna_register_api_routes() {
     // Add a check to ensure WooCommerce is active.
     if (!class_exists('WooCommerce')) {
         return;
     }
-    
-    // IMPORTANT: This header allows the exam app to fetch data from your WordPress site.
-    // It is crucial for fixing the "Network response was not ok" error.
-    header('Access-Control-Allow-Origin: *');
 
     register_rest_route('exam-app/v1', '/products', array(
         'methods' => 'GET',
         'callback' => 'annapoorna_get_exam_products_callback',
         'permission_callback' => '__return_true' // Publicly accessible
     ));
-});
+}
+add_action('rest_api_init', 'annapoorna_register_api_routes');
+
+// Function to add CORS headers - This is the key fix.
+function annapoorna_add_cors_headers($value) {
+    // IMPORTANT: This header allows the exam app to fetch data from your WordPress site.
+    // It is crucial for fixing the "Network response was not ok" error.
+    header('Access-Control-Allow-Origin: *');
+    return $value;
+}
+add_filter('rest_pre_serve_request', 'annapoorna_add_cors_headers');
+
 ?>
 `;
+
+
+const Integration = () => {
+    return (
+        <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+            <h1 className="text-3xl font-bold text-slate-800 mb-6">WordPress Integration Guide</h1>
+            
+            <div className="space-y-8">
+                {/* Section for SSO */}
+                <div className="border border-slate-200 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-slate-700 mb-2">1. Single Sign-On (SSO) & User Sync</h2>
+                    <p className="text-slate-600 mb-4">
+                        This is the complete PHP code for enabling SSO from your WordPress site, including role-based redirection. Place this in your active theme's <code>functions.php</code> file.
+                    </p>
+                    <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
+                        <code>{ssoCode}</code>
+                    </pre>
+                </div>
+                
+                {/* Section for Dynamic Products API */}
+                <div className="border border-cyan-300 bg-cyan-50 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-cyan-800 mb-2">2. Dynamic Exam Product Showcase</h2>
+                     <p className="text-slate-700 mb-4">
+                        To fetch your exam products and prices dynamically, add the following PHP code to your <code>functions.php</code> file. This creates a new, secure API endpoint that the exam app will use.
+                    </p>
+                    
+                    <h3 className="text-xl font-bold text-slate-700 mt-6 mb-2">Setup Instructions</h3>
+                    <ol className="list-decimal list-inside space-y-2 pl-4 text-slate-600">
+                        <li>
+                            <strong>Product Category:</strong> Ensure your WooCommerce products for the exams are in a category with the slug <strong><code>certification-exams</code></strong>. You can change this in the code if needed.
+                        </li>
+                        <li>
+                            <strong>Add Custom Fields:</strong> For each WooCommerce exam product, you must add two custom fields to link it to the exams in this app:
+                            <ul className="list-disc list-inside pl-6 mt-2 space-y-1 bg-white p-3 rounded-md">
+                                <li><code>practice_exam_id</code>: The value should be the ID of the corresponding practice test (e.g., <code>exam-cpc-practice</code>).</li>
+                                <li><code>certification_exam_id</code>: The value should be the ID of the corresponding certification exam (e.g., <code>cpc-certification-exam</code>).</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h3 className="text-xl font-bold text-slate-700 mt-6 mb-2">API Code for <code>functions.php</code></h3>
+                    <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
+                        <code>{apiCode}</code>
+                    </pre>
+                </div>
+
+                 {/* New Troubleshooting Section */}
+                <div className="border border-red-300 bg-red-50 p-6 rounded-lg">
+                    <h2 className="text-2xl font-semibold text-red-800 mb-2">3. Troubleshooting API Errors</h2>
+                    <p className="text-slate-700 mb-4">
+                        If you see an error like "Could not load exam products," it often means the app cannot reach the API on your WordPress site. Here are the most common fixes:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-2 pl-4 text-slate-600">
+                        <li>
+                            <strong>Update the API Code:</strong> Make sure you are using the latest version of the API code provided above, which includes the most reliable fix for cross-origin (CORS) errors.
+                        </li>
+                        <li>
+                            <strong>Check WordPress Permalinks:</strong> This is the most common cause. Your WordPress REST API might not work if your permalinks are set to "Plain".
+                            <ul className="list-disc list-inside pl-6 mt-2 space-y-1 bg-white p-3 rounded-md">
+                                <li>Go to your WordPress Admin Dashboard.</li>
+                                <li>Navigate to <strong>Settings &rarr; Permalinks</strong>.</li>
+                                <li>Select any option other than "Plain" (we recommend <strong>"Post name"</strong>).</li>
+                                <li>Click <strong>"Save Changes"</strong>. This flushes the rewrite rules and often fixes the API.</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default Integration;

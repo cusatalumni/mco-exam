@@ -37,7 +37,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           setExamProducts(data);
         } catch (error) {
           console.error("Could not load exam products from WordPress:", error);
-          toast.error("Could not load exam products list.");
+          toast.error("Could not load exam products from WordPress. Please check your integration settings and WordPress permalinks.", { duration: 6000 });
         }
       };
 
