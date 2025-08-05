@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, Redirect } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Spinner from './Spinner';
 import toast from 'react-hot-toast';
@@ -38,7 +38,7 @@ const Login: React.FC = () => {
 
     // If there was an error during token processing, redirect to the home page.
     if (error) {
-        return <Redirect to="/" />;
+        return <Navigate to="/" replace />;
     }
 
     // Once the user object is available in the context (either from token or session), redirect.
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
              }
         }
         
-        return <Redirect to={redirectTo} />;
+        return <Navigate to={redirectTo} replace />;
     }
 
     // While waiting for the token to be processed and user state to update, show a spinner.

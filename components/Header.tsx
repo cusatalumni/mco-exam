@@ -11,8 +11,8 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    // Dynamically construct the redirect URL to ensure it works for both production and Vercel previews.
-    const appHomeUrl = window.location.origin + window.location.pathname;
+    // Redirect to the external WordPress site's logout page, then back to the app's home
+    const appHomeUrl = 'https://exams.coding-online.net';
     const wpLogoutUrl = `https://www.coding-online.net/wp-login.php?action=logout&redirect_to=${encodeURIComponent(appHomeUrl)}`;
     window.location.href = wpLogoutUrl;
   };

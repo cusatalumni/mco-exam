@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { HashRouter, Switch, Route, Redirect } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -23,7 +23,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user } = useAuth();
   if (!user) {
-    return <Redirect to="/" />;
+    return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
@@ -33,40 +33,20 @@ const AppContent: React.FC = () => {
         <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800">
             <Header />
             <main className="flex-grow container mx-auto px-4 py-8">
-                <Switch>
-                    <Route path="/" exact>
-                        <LandingPage />
-                    </Route>
-                    <Route path="/auth">
-                        <Login />
-                    </Route>
-                    <Route path="/instructions">
-                        <Instructions />
-                    </Route>
-                    <Route path="/integration">
-                        <Integration />
-                    </Route>
+                <Routes>
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/auth" element={<Login />} />
+                    <Route path="/instructions" element={<Instructions />} />
+                    <Route path="/integration" element={<Integration />} />
                     
-                    <Route path="/dashboard">
-                        <ProtectedRoute><Dashboard /></ProtectedRoute>
-                    </Route>
-                    <Route path="/test/:examId">
-                        <ProtectedRoute><Test /></ProtectedRoute>
-                    </Route>
-                    <Route path="/results/:testId">
-                        <ProtectedRoute><Results /></ProtectedRoute>
-                    </Route>
-                    <Route path="/certificate/sample">
-                        <ProtectedRoute><Certificate /></ProtectedRoute>
-                    </Route>
-                    <Route path="/certificate/:testId">
-                        <ProtectedRoute><Certificate /></ProtectedRoute>
-                    </Route>
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/test/:examId" element={<ProtectedRoute><Test /></ProtectedRoute>} />
+                    <Route path="/results/:testId" element={<ProtectedRoute><Results /></ProtectedRoute>} />
+                    <Route path="/certificate/sample" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
+                    <Route path="/certificate/:testId" element={<ProtectedRoute><Certificate /></ProtectedRoute>} />
                 
-                    <Route path="*">
-                        <Redirect to="/" />
-                    </Route>
-                </Switch>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </main>
             <Footer />
         </div>

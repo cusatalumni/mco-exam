@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
@@ -26,7 +26,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => (
 
 const Certificate: React.FC = () => {
     const { testId = 'sample' } = useParams<{ testId?: string }>();
-    const history = useHistory();
+    const navigate = useNavigate();
     const { user } = useAuth();
     const { activeOrg } = useAppContext();
     const [certData, setCertData] = useState<CertificateData | null>(null);
@@ -38,7 +38,7 @@ const Certificate: React.FC = () => {
         const fetchCertificateData = async () => {
             if (!user || !activeOrg) {
                 toast.error("Invalid data. Cannot generate certificate.");
-                history.push('/dashboard');
+                navigate('/dashboard');
                 return;
             }
             
@@ -49,18 +49,18 @@ const Certificate: React.FC = () => {
                     setCertData(data);
                 } else {
                     toast.error("Certificate not earned for this test.");
-                    history.push('/dashboard');
+                    navigate('/dashboard');
                 }
             } catch (error) {
                 toast.error("Failed to load certificate data.");
-                history.push('/dashboard');
+                navigate('/dashboard');
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchCertificateData();
-    }, [testId, user, activeOrg, history]);
+    }, [testId, user, activeOrg, navigate]);
 
     const handleDownload = async () => {
         if (!certificateRef.current) return;
@@ -104,7 +104,7 @@ const Certificate: React.FC = () => {
         <div className="max-w-5xl mx-auto bg-slate-100 p-4 sm:p-6 rounded-lg">
             <div className="flex justify-between items-center mb-6">
                  <button
-                    onClick={() => history.push('/dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="flex items-center space-x-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg transition"
                 >
                     <ArrowLeft size={16} />

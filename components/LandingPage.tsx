@@ -1,6 +1,6 @@
 
 import React, { useMemo, useEffect } from 'react';
-import { useHistory, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight } from 'lucide-react';
@@ -18,15 +18,15 @@ const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType,
 );
 
 const LandingPage: React.FC = () => {
-    const history = useHistory();
+    const navigate = useNavigate();
     const { user, paidExamIds } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
     
     useEffect(() => {
         if (user) {
-            history.push('/dashboard');
+            navigate('/dashboard');
         }
-    }, [user, history]);
+    }, [user, navigate]);
 
     const loginUrl = `https://www.coding-online.net/exam-login/`;
     const appUrl = 'https://exams.coding-online.net';
@@ -41,7 +41,7 @@ const LandingPage: React.FC = () => {
             window.location.href = fullLoginUrl;
             return;
         }
-        history.push(`/test/${examId}`);
+        navigate(`/test/${examId}`);
     };
     
     // Create a lookup map for exams for easier and more performant access inside the loop.
@@ -151,7 +151,7 @@ const LandingPage: React.FC = () => {
                                     <div className="text-center">
                                         {isCertUnlocked ? (
                                             <button 
-                                                onClick={() => history.push(`/test/${certExam.id}`)}
+                                                onClick={() => navigate(`/test/${certExam.id}`)}
                                                 className="w-full flex justify-center items-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition"
                                             >
                                                 <CheckCircle size={18} className="mr-2"/> Start Certification
