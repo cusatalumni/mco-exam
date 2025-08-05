@@ -1,15 +1,15 @@
 
-
 import React from 'react';
 
 const ssoCode = `
 <?php
 /**
  * ===================================================================
- * V15: More Reliable Admin Detection
+ * V15: More Reliable Admin Detection & Role-Based URL Redirection
  * ===================================================================
  * This version uses user_can('manage_options') for a more robust way
- * of identifying administrators, ensuring redirection works correctly.
+ * of identifying administrators, ensuring redirection works correctly
+ * for both production and testing environments.
  */
 
 // --- CONFIGURATION ---
@@ -21,6 +21,7 @@ define('ANNAPOORNA_JWT_SECRET_KEY', 'K7x$4tZ!Gv2#h1wM9uY^eP*8Aq@R5sV%z3Jb0D&fL6N
 
 /**
  * Helper function to get the correct redirect URL based on user role.
+ * This is crucial for directing admins to the test app and others to production.
  */
 function annapoorna_get_redirect_url_for_user($user_id) {
     if (!$user_id) {
@@ -184,6 +185,11 @@ const apiCode = `
 
 // Callback function to fetch and format product data
 function annapoorna_get_exam_products_callback() {
+    // Add a check to ensure WooCommerce is active before proceeding.
+    if (!class_exists('WooCommerce')) {
+        return new WP_Error('woocommerce_not_active', 'WooCommerce is not active.', array('status' => 500));
+    }
+
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => -1,
@@ -220,11 +226,6 @@ function annapoorna_get_exam_products_callback() {
 
 // Function to register the custom REST API route
 function annapoorna_register_api_routes() {
-    // Add a check to ensure WooCommerce is active.
-    if (!class_exists('WooCommerce')) {
-        return;
-    }
-
     register_rest_route('exam-app/v1', '/products', array(
         'methods' => 'GET',
         'callback' => 'annapoorna_get_exam_products_callback',

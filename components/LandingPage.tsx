@@ -23,15 +23,17 @@ const LandingPage: React.FC = () => {
     const { activeOrg, isInitializing, examProducts } = useAppContext();
     
     const loginUrl = `https://www.coding-online.net/exam-login/`;
-    const appUrl = 'https://exams.coding-online.net';
+    // Dynamically get the current app's base URL to ensure redirects work in any environment.
+    const appUrl = window.location.origin + window.location.pathname;
     
-    const appDashboardPath = '/#/dashboard';
+    const appDashboardPath = '#/dashboard';
     const fullLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
     const handleStartPractice = (examId: string) => {
         if (!user) {
             toast.error("Please log in to take a practice test.");
-            const practicePath = `/#/test/${examId}`;
+            const practicePath = `#/test/${examId}`;
+            // Construct a dynamic login URL that redirects back to the practice test on the current app instance.
             const practiceLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + practicePath)}`;
             window.location.href = practiceLoginUrl;
             return;

@@ -19,11 +19,11 @@ const Dashboard: React.FC = () => {
     const [practiceStats, setPracticeStats] = useState({ attemptsTaken: 0, attemptsAllowed: 0 });
 
     const loginUrl = 'https://www.coding-online.net/exam-login/';
-    const appUrl = user?.isAdmin 
-        ? 'https://mco-exam-jkfzdt3bj-manoj-balakrishnans-projects-aa177a85.vercel.app/'
-        : 'https://exams.coding-online.net/';
+    // Dynamically get the current app's base URL to ensure redirects work in any environment.
+    const appUrl = window.location.origin + window.location.pathname;
     
     const appDashboardPath = '#/dashboard';
+    // Construct the sync URL with a dynamic redirect back to the current app instance.
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appUrl + appDashboardPath)}`;
 
 
