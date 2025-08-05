@@ -5,11 +5,11 @@ const ssoCode = `
 <?php
 /**
  * ===================================================================
- * V15: More Reliable Admin Detection & Role-Based URL Redirection
+ * V16: Homepage Redirect for Logged-In Users
  * ===================================================================
- * This version uses user_can('manage_options') for a more robust way
- * of identifying administrators, ensuring redirection works correctly
- * for both production and testing environments.
+ * This version adds a new function to automatically redirect logged-in
+ * users from the main WordPress homepage to the correct exam app,
+ * enhancing the seamless SSO experience.
  */
 
 // --- CONFIGURATION ---
@@ -154,7 +154,7 @@ function annapoorna_exam_login_shortcode() {
 }
 add_shortcode('exam_portal_login', 'annapoorna_exam_login_shortcode');
 
-// SECTION 3: CUSTOMIZE REGISTRATION & REDIRECTS
+// SECTION 3: REDIRECTS AFTER REGISTRATION
 function annapoorna_exam_check_redirect_on_load() {
     if (is_user_logged_in()) {
         $user_id = get_current_user_id();
@@ -169,6 +169,31 @@ function annapoorna_exam_check_redirect_on_load() {
     }
 }
 add_action('template_redirect', 'annapoorna_exam_check_redirect_on_load');
+
+// SECTION 4: HOMEPAGE REDIRECT FOR LOGGED-IN USERS (NEW)
+function annapoorna_homepage_redirect_for_logged_in() {
+    // Only run this on the main site's homepage and for logged-in users.
+    if (is_front_page() && is_user_logged_in()) {
+        // Don't redirect if a specific 'no-redirect' query param is present.
+        // This allows admins to view the homepage if needed.
+        if (isset($_GET['no-redirect'])) {
+            return;
+        }
+
+        $user_id = get_current_user_id();
+        $token = annapoorna_generate_exam_jwt($user_id);
+
+        if ($token) {
+            $base_url = annapoorna_get_redirect_url_for_user($user_id);
+            // Redirect to the dashboard of the appropriate app instance.
+            $final_redirect_url = $base_url . '#/auth?token=' . $token . '&redirect_to=/dashboard';
+            wp_redirect($final_redirect_url);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'annapoorna_homepage_redirect_for_logged_in');
+
 ?>
 `;
 
@@ -257,7 +282,7 @@ const Integration = () => {
                 <div className="border border-slate-200 p-6 rounded-lg">
                     <h2 className="text-2xl font-semibold text-slate-700 mb-2">1. Single Sign-On (SSO) & User Sync</h2>
                     <p className="text-slate-600 mb-4">
-                        This is the complete PHP code for enabling SSO from your WordPress site, including role-based redirection. Place this in your active theme's <code>functions.php</code> file.
+                        This is the complete PHP code for enabling SSO from your WordPress site, including role-based redirection and the new homepage redirect. Place this in your active theme's <code>functions.php</code> file.
                     </p>
                     <pre className="bg-slate-800 text-white p-4 rounded-lg overflow-x-auto text-sm">
                         <code>{ssoCode}</code>
