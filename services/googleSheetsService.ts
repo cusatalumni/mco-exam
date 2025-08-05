@@ -1,6 +1,6 @@
 
 
-import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, ExamProductCategory, User, RecommendedBook } from '../types';
+import type { Question, UserAnswer, TestResult, CertificateData, Organization, Exam, User, RecommendedBook } from '../types';
 import { logoBase64 } from '../assets/logo';
 
 
@@ -46,21 +46,6 @@ const MASTER_BOOK_LIST: RecommendedBook[] = [
         imageUrl: 'https://placehold.co/300x400/003366/FFFFFF/png?text=ICD-10+Handbook',
         affiliateLinks: { com: 'https://www.amazon.com/dp/1556484643?tag=mykada-20', in: 'https://www.amazon.in/dp/1556484643?tag=httpcodingonl-21', ae: 'https://amzn.to/46QduHx' }
     }
-];
-
-const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
-    { id: 'prod-cpc', name: 'CPC', description: 'A test series designed to prepare you for the AAPC CPC (Certified Professional Coder) certification.', practiceExamId: 'exam-cpc-practice', certificationExamId: 'cpc-certification-exam' },
-    { id: 'prod-cca', name: 'CCA', description: 'A test series aligned with AHIMA’s CCA (Certified Coding Associate) exam blueprint.', practiceExamId: 'exam-cca-practice', certificationExamId: 'cca-certification-exam' },
-    { id: 'prod-ccs', name: 'CCS', description: 'A comprehensive test series for the AHIMA CCS (Certified Coding Specialist) credential.', practiceExamId: 'exam-ccs-practice', certificationExamId: 'ccs-certification-exam' },
-    { id: 'prod-billing', name: 'Medical Billing', description: 'A test series covering core concepts in medical billing and reimbursement.', practiceExamId: 'exam-billing-practice', certificationExamId: 'medical-billing-certification' },
-    { id: 'prod-risk', name: 'Risk Adjustment Coding', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC).', practiceExamId: 'exam-risk-practice', certificationExamId: 'risk-adjustment-coding-certification' },
-    { id: 'prod-icd', name: 'ICD-10-CM', description: 'A test series focusing on ICD-10-CM diagnosis coding proficiency.', practiceExamId: 'exam-icd-practice', certificationExamId: 'icd-10-cm-certification-exam' },
-    { id: 'prod-cpb', name: 'CPB', description: 'A test series for the AAPC CPB (Certified Professional Biller) certification.', practiceExamId: 'exam-cpb-practice', certificationExamId: 'cpb-certification-exam' },
-    { id: 'prod-crc', name: 'CRC', description: 'A test series on risk adjustment models and hierarchical condition categories (HCC) for the CRC certification.', practiceExamId: 'exam-crc-practice', certificationExamId: 'crc-certification-exam' },
-    { id: 'prod-cpma', name: 'CPMA', description: 'A test series for the AAPC CPMA (Certified Professional Medical Auditor) certification.', practiceExamId: 'exam-cpma-practice', certificationExamId: 'cpma-certification-exam' },
-    { id: 'prod-coc', name: 'COC', description: 'A test series for the AAPC COC (Certified Outpatient Coder) certification.', practiceExamId: 'exam-coc-practice', certificationExamId: 'coc-certification-exam' },
-    { id: 'prod-cic', name: 'CIC', description: 'A test series for the AAPC CIC (Certified Inpatient Coder) certification.', practiceExamId: 'exam-cic-practice', certificationExamId: 'cic-certification-exam' },
-    { id: 'prod-mta', name: 'Medical Terminology & Anatomy', description: 'A foundational test series covering core medical terminology and anatomy.', practiceExamId: 'exam-mta-practice', certificationExamId: 'medical-terminology-anatomy-certification' },
 ];
 
 const ALL_EXAMS: Exam[] = [
@@ -134,7 +119,6 @@ let mockDb: {
             website: 'www.coding-online.net',
             logo: logoBase64,
             exams: ALL_EXAMS,
-            examProductCategories: EXAM_PRODUCT_CATEGORIES,
             masterBookList: MASTER_BOOK_LIST,
             certificateTemplates: [
                 {

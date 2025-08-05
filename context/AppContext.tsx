@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { googleSheetsService } from '../services/googleSheetsService';
-import type { Organization, RecommendedBook } from '../types';
+import type { Organization, RecommendedBook, ExamProduct } from '../types';
 import toast from 'react-hot-toast';
 
 interface AppContextType {
@@ -11,6 +11,7 @@ interface AppContextType {
   isLoading: boolean;
   isInitializing: boolean;
   suggestedBooks: RecommendedBook[];
+  examProducts: ExamProduct[];
   setActiveOrgById: (orgId: string) => void;
   updateActiveOrg: (updatedOrg: Organization) => void;
 }
@@ -23,9 +24,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isLoading, setIsLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
   const [suggestedBooks, setSuggestedBooks] = useState<RecommendedBook[]>([]);
+  const [examProducts, setExamProducts] = useState<ExamProduct[]>([]);
 
   useEffect(() => {
+    const fetchExamProducts = async () => {
+        try {
+          const response = await fetch('https://www.coding-online.net/wp-json/exam-app/v1/products');
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          setExamProducts(data);
+        } catch (error) {
+          console.error("Could not load exam products from WordPress:", error);
+          toast.error("Could not load exam products list.");
+        }
+      };
+
     const initializeApp = async () => {
+      setIsInitializing(true);
+      
       try {
         await googleSheetsService.initializeAndCategorizeExams();
         toast.success("Exams loaded successfully!", { duration: 2000 });
@@ -33,6 +51,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.error("Failed to initialize exams:", error);
         toast.error("Failed to load exams.");
       }
+
+      fetchExamProducts();
 
       const allOrgs = googleSheetsService.getOrganizations();
       setOrganizations(allOrgs);
@@ -67,7 +87,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   return (
-    <AppContext.Provider value={{ organizations, activeOrg, isLoading, isInitializing, suggestedBooks, setActiveOrgById, updateActiveOrg }}>
+    <AppContext.Provider value={{ organizations, activeOrg, isLoading, isInitializing, suggestedBooks, examProducts, setActiveOrgById, updateActiveOrg }}>
       {children}
     </AppContext.Provider>
   );
