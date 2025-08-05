@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,12 @@ const LandingPage: React.FC = () => {
     const { user, paidExamIds } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
     
+    useEffect(() => {
+        if (user) {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
+
     const loginUrl = `https://www.coding-online.net/exam-login/`;
     const appUrl = 'https://exams.coding-online.net';
     
@@ -47,7 +53,7 @@ const LandingPage: React.FC = () => {
         return new Map(activeOrg.exams.map(exam => [exam.id, exam]));
     }, [activeOrg]);
 
-    if (isInitializing || !activeOrg) {
+    if (isInitializing || !activeOrg || user) { // Also show spinner while redirecting
         return (
             <div className="flex flex-col items-center justify-center h-screen">
                 <Spinner />

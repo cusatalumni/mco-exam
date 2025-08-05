@@ -1,6 +1,5 @@
 
 
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -16,7 +15,6 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import LandingPage from './components/LandingPage';
 import Instructions from './components/Instructions';
-import Integration from './components/Integration';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -39,7 +37,6 @@ const AppContent: React.FC = () => {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/auth" element={<Login />} />
                     <Route path="/instructions" element={<Instructions />} />
-                    <Route path="/integration" element={<Integration />} />
                     
                     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/test/:examId" element={<ProtectedRoute><Test /></ProtectedRoute>} />

@@ -63,9 +63,8 @@ const Dashboard: React.FC = () => {
     const processedPurchasedExams = useMemo(() => {
         if (!activeOrg) return [];
         
-        // Match purchased exams using the exam ID, which corresponds to the WooCommerce SKU.
         return activeOrg.exams
-            .filter(e => !e.isPractice && paidExamIds.includes(e.id))
+            .filter(e => paidExamIds.includes(e.id) && !e.isPractice)
             .map(exam => {
                 const examResults = results.filter(r => r.examId === exam.id);
                 const attemptsMade = examResults.length;

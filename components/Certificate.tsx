@@ -97,8 +97,8 @@ const Certificate: React.FC = () => {
         return <div className="text-center p-8"><p>No certificate data available.</p></div>;
     }
 
-    const { organization, certificateTitle, certificateBody, signature1Name, signature1Title } = certData;
-    const bodyText = certificateBody.replace('{finalScore}', certData.finalScore.toString());
+    const { organization, template } = certData;
+    const bodyText = template.body.replace('{finalScore}', certData.finalScore.toString());
 
     return (
         <div className="max-w-5xl mx-auto bg-slate-100 p-4 sm:p-6 rounded-lg">
@@ -134,8 +134,8 @@ const Certificate: React.FC = () => {
                     </div>
                                         
                     <div className="flex-grow flex flex-col items-center justify-center text-center">
-                        <p className="text-xl text-slate-600 tracking-wider">Certificate of Achievement</p>
-                        <p className="text-4xl font-bold text-teal-800 tracking-wide mt-1">{certificateTitle}</p>
+                        <p className="text-xl text-slate-600 tracking-wider">Certificate of Achievement in</p>
+                        <p className="text-4xl font-bold text-teal-800 tracking-wide mt-1">{template.title}</p>
                         
                         <div className="w-1/3 mx-auto my-4 border-b border-slate-400"></div>
 
@@ -153,15 +153,15 @@ const Certificate: React.FC = () => {
                             <div className="text-center w-72">
                                <img 
                                   src={signatureBase64} 
-                                  alt={`${signature1Name} Signature`}
+                                  alt={`${template.signature1Name} Signature`}
                                   className="h-16 mx-auto object-contain mb-2"
                                 />
                                <div className="border-t border-slate-400 pt-2">
                                   <p className="text-sm text-slate-700 tracking-wider">
-                                    <strong>{signature1Name}</strong>
+                                    <strong>{template.signature1Name}</strong>
                                   </p>
                                   <p className="text-xs text-slate-600 tracking-wider">
-                                    {signature1Title}
+                                    {template.signature1Title}
                                   </p>
                                </div>
                             </div>

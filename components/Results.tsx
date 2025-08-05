@@ -129,7 +129,7 @@ const Results: React.FC = () => {
                 </div>
             )}
 
-            {isAdmin && exam && !exam.isPractice && (
+            {isAdmin && (
                 <div className="text-center mb-8">
                     <button
                         onClick={() => navigate(`/certificate/${result.testId}`)}
