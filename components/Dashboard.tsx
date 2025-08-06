@@ -213,8 +213,8 @@ const Dashboard: React.FC = () => {
                             }) : (
                                 <div className="text-center py-6 text-slate-500">
                                     <p>You haven't purchased any certification exams yet.</p>
-                                    <a href={browseExamsUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-cyan-600 hover:text-cyan-800">
-                                        Browse Exams <ArrowRight size={14} className="inline"/>
+                                    <a href={browseExamsUrl} target="_blank" rel="noopener noreferrer" className="mt-2 text-sm font-semibold text-cyan-600 hover:text-cyan-800 flex items-center gap-1 mx-auto">
+                                        Browse Exams <ArrowRight size={14} />
                                     </a>
                                 </div>
                             )}
