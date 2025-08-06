@@ -10,6 +10,7 @@ interface AuthContextType {
   loginWithToken: (token: string) => void;
   logout: () => void;
   useFreeAttempt: () => void;
+  updateUserName: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -94,8 +95,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('User has started a free practice attempt.');
   };
 
+  const updateUserName = (name: string) => {
+    if (user) {
+      const updatedUser = { ...user, name };
+      setUser(updatedUser);
+      localStorage.setItem('examUser', JSON.stringify(updatedUser));
+    }
+  };
+
+
   return (
-    <AuthContext.Provider value={{ user, token, paidExamIds, isSubscribed, loginWithToken, logout, useFreeAttempt }}>
+    <AuthContext.Provider value={{ user, token, paidExamIds, isSubscribed, loginWithToken, logout, useFreeAttempt, updateUserName }}>
       {children}
     </AuthContext.Provider>
   );
