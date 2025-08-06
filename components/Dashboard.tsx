@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [name, setName] = useState(user?.name || '');
 
-    const loginUrl = 'https://www.coding-online.net/exam-login/';
+    const loginUrl = 'https://coding-online.net/exam-login/';
     const appDashboardPath = '/dashboard';
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
     const browseExamsUrl = 'https://www.coding-online.net/exam-programs';
