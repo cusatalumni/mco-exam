@@ -18,7 +18,7 @@ const formatTime = (seconds: number) => {
 const Test: React.FC = () => {
   const { examId } = useParams<{ examId: string }>();
   const navigate = useNavigate();
-  const { user, useFreeAttempt, isSubscribed } = useAuth();
+  const { user, useFreeAttempt, isSubscribed, token } = useAuth();
   const { activeOrg, isInitializing } = useAppContext();
 
   const [examConfig, setExamConfig] = useState<Exam | null>(null);
@@ -195,7 +195,7 @@ const Test: React.FC = () => {
             answer,
         }));
         
-        const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers, questions);
+        const result = await googleSheetsService.submitTest(user, activeOrg.id, examId, userAnswers, questions, token);
         toast.success("Test submitted successfully!");
         navigate(`/results/${result.testId}`);
 

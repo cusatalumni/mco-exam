@@ -38,7 +38,7 @@ const Login: React.FC = () => {
 
     // If there was an error during token processing, redirect to the home page.
     if (error) {
-        return <Navigate to="/" />;
+        return <Navigate to="/" replace />;
     }
 
     // Once the user object is available in the context (either from token or session), redirect.
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
              }
         }
         
-        return <Navigate to={redirectTo} />;
+        return <Navigate to={redirectTo} replace />;
     }
 
     // While waiting for the token to be processed and user state to update, show a spinner.

@@ -13,7 +13,11 @@ const AI_EXAM_TOPICS = [
     { id: 'topic-outpatient-coding', name: 'Outpatient Coding Challenge' },
     { id: 'topic-risk-adjustment', name: 'Risk Adjustment (HCC)' },
     { id: 'topic-medical-terminology', name: 'Medical Terminology' },
-    { id: 'topic-medical-billing', name: 'Medical Billing' }, // Add new topic for mapping
+    { id: 'topic-medical-billing', name: 'Medical Billing' }, 
+
+
+
+// Add new topic for mapping
 ];
 
 const EXAM_PRODUCT_CATEGORIES: ExamProductCategory[] = [
@@ -249,7 +253,7 @@ export const googleSheetsService = {
         return shuffled.slice(0, Math.min(examConfig.numberOfQuestions, shuffled.length));
     },
 
-    submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[], questions: Question[]): Promise<TestResult> => {
+    submitTest: async (user: User, orgId: string, examId: string, answers: UserAnswer[], questions: Question[], token: string | null): Promise<TestResult> => {
         const questionPool = questions;
         const answerMap = new Map(answers.map(a => [a.questionId, a.answer]));
 
@@ -290,6 +294,29 @@ export const googleSheetsService = {
         const allUserResults = _getResultsFromStorage(user.id);
         allUserResults.push(newResult);
         _saveResultsToStorage(user.id, allUserResults);
+        
+        // Sync result to WordPress in the background
+        if (token) {
+            try {
+                const response = await fetch('https://www.coding-online.net/wp-json/exam-app/v1/submit-result', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(newResult)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to sync result to WordPress.');
+                }
+                console.log('Test result successfully synced to WordPress.');
+            } catch (error) {
+                console.error('Error syncing result to WordPress:', error);
+                // This is a non-critical error, so we don't block the user.
+            }
+        }
+
 
         return Promise.resolve(newResult);
     },

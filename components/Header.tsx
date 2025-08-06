@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { LogOut, UserCircle, UserPlus, LogIn, User } from 'lucide-react';
+import { LogOut, UserCircle, UserPlus, LogIn, User, Shield } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -19,7 +19,7 @@ const Header: React.FC = () => {
 
   const headerLink = user ? "/dashboard" : "/";
   
-  // The custom login page is a WordPress page with the slug 'exam-login' as defined in the PHP snippet
+  // The custom login page is a WordPress page with the slug 'exam-login'
   const loginUrl = `https://www.coding-online.net/exam-login/`;
   const myAccountUrl = `https://www.coding-online.net/my-account/`;
 
@@ -60,6 +60,16 @@ const Header: React.FC = () => {
                 <UserCircle size={20} />
                 <span className="hidden sm:inline">Welcome, {user.name}{user.isAdmin && ' (Admin)'}</span>
               </div>
+               {user.isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+                    title="Go to the Admin Panel"
+                  >
+                    <Shield size={16} />
+                    <span className="hidden sm:inline">Admin</span>
+                  </Link>
+               )}
                <a
                 href={myAccountUrl}
                 target="_blank"
