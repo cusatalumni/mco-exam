@@ -1,10 +1,9 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { BrainCircuit, BarChart, FileSignature, Lock, CheckCircle, PlayCircle, ArrowRight } from 'lucide-react';
+import { BrainCircuit, BarChart, FileSignature } from 'lucide-react';
 import Spinner from './Spinner';
-import toast from 'react-hot-toast';
 
 const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType, title: string, children: React.ReactNode }) => (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -18,7 +17,7 @@ const FeatureCard = ({ icon: Icon, title, children }: { icon: React.ElementType,
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, paidExamIds } = useAuth();
+    const { user } = useAuth();
     const { activeOrg, isInitializing } = useAppContext();
     
     useEffect(() => {
@@ -28,24 +27,6 @@ const LandingPage: React.FC = () => {
     }, [user, navigate]);
 
     const loginUrl = `https://www.coding-online.net/exam-login/`;
-
-    const handleStartPractice = (examId: string) => {
-        if (!user) {
-            toast.error("Please log in to take a practice test.");
-            // Create a specific deep link for this test. The path should be what comes after the #
-            const appTestPath = `/test/${examId}`;
-            const deepLoginUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appTestPath)}`;
-            window.location.href = deepLoginUrl;
-            return;
-        }
-        navigate(`/test/${examId}`);
-    };
-    
-    // Create a lookup map for exams for easier and more performant access inside the loop.
-    const examMap = useMemo(() => {
-        if (!activeOrg) return new Map();
-        return new Map(activeOrg.exams.map(exam => [exam.id, exam]));
-    }, [activeOrg]);
 
     if (isInitializing || !activeOrg || user) { // Also show spinner while redirecting
         return (
