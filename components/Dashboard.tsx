@@ -22,7 +22,7 @@ const Dashboard: React.FC = () => {
     const loginUrl = 'https://coding-online.net/exam-login/';
     const appDashboardPath = '/dashboard';
     const syncUrl = `${loginUrl}?redirect_to=${encodeURIComponent(appDashboardPath)}`;
-    const browseExamsUrl = 'https://coding-online.net/exam-programs';
+    const browseExamsUrl = 'https://coding-online.net/';
 
     useEffect(() => {
         if (!user || !activeOrg) return;
