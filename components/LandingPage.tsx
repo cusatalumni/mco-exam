@@ -1,4 +1,3 @@
-
 import React, { useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -104,74 +103,6 @@ const LandingPage: React.FC = () => {
                     <FeatureCard icon={FileSignature} title="Printable Certificates">
                         Earn and share verifiable certificates upon successful completion of our paid certification exams to showcase your skills.
                     </FeatureCard>
-                </div>
-            </section>
-
-            {/* Exam Showcase */}
-            <section>
-                <h2 className="text-3xl sm:text-4xl font-bold text-center text-slate-800 mb-4">Available Exams</h2>
-                <p className="text-md sm:text-lg text-center text-slate-500 max-w-2xl mx-auto mb-12">Choose from our selection of practice and certification exams to test your skills and prepare for success.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {activeOrg.examProductCategories.map(category => {
-                        const practiceExam = examMap.get(category.practiceExamId);
-                        const certExam = examMap.get(category.certificationExamId);
-
-                        if (!practiceExam || !certExam) return null;
-
-                        const isCertUnlocked = user && paidExamIds.includes(certExam.id);
-                        
-                        const purchaseUrl = certExam.productSlug ? `https://www.coding-online.net/product/${certExam.productSlug}` : '#';
-
-                        return (
-                            <div key={category.id} className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center gap-8 transition-all duration-300 hover:shadow-cyan-100 hover:shadow-xl">
-                                {/* Left side: Info */}
-                                <div className="flex-grow text-center md:text-left">
-                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">{category.name}</h3>
-                                    <p className="text-slate-500 mt-2 max-w-xl">{category.description}</p>
-                                </div>
-                            
-                                {/* Right side: Actions */}
-                                <div className="flex-shrink-0 w-full md:w-auto md:min-w-[280px] space-y-4">
-                                    {/* Practice Test Button */}
-                                    <div className="text-center">
-                                        <button 
-                                            onClick={() => handleStartPractice(practiceExam.id)}
-                                            className="w-full flex justify-center items-center bg-white border border-cyan-600 text-cyan-700 font-bold py-3 px-4 rounded-lg hover:bg-cyan-600 hover:text-white transition-colors duration-200"
-                                        >
-                                            <PlayCircle size={18} className="mr-2" />
-                                            <span>Practice Test</span>
-                                        </button>
-                                        <p className="text-xs text-slate-500 mt-1">{practiceExam.numberOfQuestions} questions. {user ? `Available` : 'Login to practice.'}</p>
-                                    </div>
-                            
-                                    {/* Certification Exam Button */}
-                                    <div className="text-center">
-                                        {isCertUnlocked ? (
-                                            <button 
-                                                onClick={() => navigate(`/test/${certExam.id}`)}
-                                                className="w-full flex justify-center items-center bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition"
-                                            >
-                                                <CheckCircle size={18} className="mr-2"/> Start Certification
-                                            </button>
-                                        ) : (
-                                            <a 
-                                                href={purchaseUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-full flex justify-center items-center bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition disabled:bg-slate-300"
-                                            >
-                                                <Lock size={18} className="mr-2" />
-                                                <span>Purchase Exam</span>
-                                                <ArrowRight size={18} className="ml-2"/>
-                                            </a>
-                                        )}
-                                        <p className="text-xs text-slate-500 mt-1">{certExam.numberOfQuestions} questions. Certificate on completion.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
             </section>
         </div>

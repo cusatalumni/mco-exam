@@ -1,14 +1,14 @@
-
 import React from 'react';
 
 const phpCode = `<?php
 /**
  * ===================================================================
- * V14.0: Integrated Exam Portal Functions (With Results API)
+ * V13.3: Integrated Exam Portal Functions (Configurable & Stable)
  * ===================================================================
- * This version includes all features from V13.3 and adds a secure
- * REST API endpoint for the exam app to send test results back to
- * be stored in WordPress user meta.
+ * This version makes the login page slug configurable, supports role-based redirects,
+ * includes enhanced JWT payload, secure configuration, robust WooCommerce integration,
+ * and adds an option for admins to switch between production and test exam app URLs.
+ * Includes debug logging and JWT display for verification.
  */
 
 // --- CONFIGURATION ---
@@ -23,6 +23,11 @@ define('ANNAPOORNA_EXAM_APP_TEST_URL', 'https://mco-exam-jkfzdt3bj-manoj-balakri
 
 /**
  * Returns the appropriate exam app URL based on user role or admin selection.
+ * Admins default to the test URL unless specified otherwise.
+ *
+ * @param bool $is_admin Whether the user is an admin.
+ * @param string|null $selected_url Optional URL selected by admin ('test' or 'production').
+ * @return string The exam app URL.
  */
 function annapoorna_get_exam_app_url($is_admin = false, $selected_url = null) {
     if ($is_admin && $selected_url === 'production') {
@@ -33,6 +38,9 @@ function annapoorna_get_exam_app_url($is_admin = false, $selected_url = null) {
 
 /**
  * Generates the JWT payload with user details and purchased exam IDs.
+ *
+ * @param int $user_id The user ID.
+ * @return array|null The payload or null if user is invalid.
  */
 function annapoorna_exam_get_payload($user_id) {
     if (!is_numeric($user_id) || $user_id <= 0) {
@@ -115,6 +123,9 @@ function annapoorna_exam_get_payload($user_id) {
 
 /**
  * Encodes data with base64url format.
+ *
+ * @param string $data The data to encode.
+ * @return string The base64url-encoded string.
  */
 function annapoorna_base64url_encode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -122,6 +133,10 @@ function annapoorna_base64url_encode($data) {
 
 /**
  * Generates a secure JWT for the exam portal.
+ * This is a manual implementation of JWT, dependency-free.
+ *
+ * @param int $user_id The user ID.
+ * @return string|null The JWT or null if generation fails.
  */
 function annapoorna_generate_exam_jwt($user_id) {
     $secret_key = defined('ANNAPOORNA_JWT_SECRET') ? ANNAPOORNA_JWT_SECRET : '';
@@ -129,6 +144,9 @@ function annapoorna_generate_exam_jwt($user_id) {
         error_log('ANNAPOORNA: JWT generation failed - secret key is missing or invalid in wp-config.php');
         return null;
     }
+    
+    // Log secret key presence (obfuscated for security)
+    error_log('ANNAPOORNA: JWT secret key defined, length: ' . strlen($secret_key));
 
     $payload = annapoorna_exam_get_payload($user_id);
     if (!$payload) {
@@ -157,6 +175,9 @@ function annapoorna_generate_exam_jwt($user_id) {
 
 /**
  * Redirects the user to the exam portal after a successful WooCommerce purchase.
+ * Admins are redirected to ANNAPOORNA_EXAM_APP_TEST_URL, non-admins to ANNAPOORNA_EXAM_APP_URL.
+ *
+ * @param int $order_id The ID of the WooCommerce order.
  */
 function annapoorna_redirect_after_purchase($order_id) {
     if (!$order_id) {
@@ -191,11 +212,21 @@ add_action('woocommerce_thankyou', 'annapoorna_redirect_after_purchase', 10, 1);
 
 /**
  * Shortcode for the custom exam portal login form.
+ * Redirects authenticated users to the appropriate exam app URL (test for admins, production for non-admins).
+ * Admins see a form to choose between production and test URLs, with JWT debug info.
+ *
+ * @return string The login form HTML, admin switch form, or redirect script.
  */
 function annapoorna_exam_login_shortcode() {
     $login_error = '';
-    $debug_info = ''; 
+    $debug_info = ''; // For displaying JWT to admins
     $redirect_to = isset($_GET['redirect_to']) ? esc_url_raw(urldecode($_GET['redirect_to'])) : '/dashboard';
+
+    // Check for JWT secret presence
+    $jwt_secret_missing = !defined('ANNAPOORNA_JWT_SECRET') || empty(ANNAPOORNA_JWT_SECRET) || ANNAPOORNA_JWT_SECRET === 'your-very-strong-secret-key';
+    if ($jwt_secret_missing) {
+        $login_error = 'Configuration error: Please define a valid ANNAPOORNA_JWT_SECRET in wp-config.php.';
+    }
 
     // Handle login form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['exam_login_nonce']) && wp_verify_nonce($_POST['exam_login_nonce'], 'exam_login_action')) {
@@ -218,6 +249,29 @@ function annapoorna_exam_login_shortcode() {
                 exit;
             } else {
                 $login_error = 'Could not generate login token. Please check debug log and contact support.';
+                $debug_info = 'Debug: Check wp-content/debug.log for JWT generation errors.';
+            }
+        }
+    }
+
+    // Handle admin URL switch form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['admin_switch_nonce']) && wp_verify_nonce($_POST['admin_switch_nonce'], 'admin_switch_action')) {
+        $user_id = get_current_user_id();
+        if (!$user_id) {
+            $login_error = 'Error: User not authenticated. Please log in again.';
+        } else {
+            $token = annapoorna_generate_exam_jwt($user_id);
+            if ($token) {
+                $is_admin = in_array('administrator', (array) get_userdata($user_id)->roles);
+                $selected_url = !empty($_POST['exam_app_url']) && in_array($_POST['exam_app_url'], ['test', 'production']) ? sanitize_text_field($_POST['exam_app_url']) : null;
+                $final_redirect_url = annapoorna_get_exam_app_url($is_admin, $selected_url) . '#/auth?token=' . $token . '&redirect_to=' . urlencode($redirect_to);
+                $debug_info = 'JWT: ' . $token; // Display JWT for debugging
+                error_log('ANNAPOORNA: Admin switch redirect for user ID ' . $user_id . ' to ' . $final_redirect_url);
+                wp_redirect($final_redirect_url);
+                exit;
+            } else {
+                $login_error = 'Could not generate login token. Please check debug log and contact support.';
+                $debug_info = 'Debug: Check wp-content/debug.log for JWT generation errors.';
             }
         }
     }
@@ -229,39 +283,155 @@ function annapoorna_exam_login_shortcode() {
         $is_admin = $user && in_array('administrator', (array) $user->roles);
         
         if ($is_admin) {
+            // Show form for admins to choose between production and test URLs
             ?>
+            <style>
+                .exam-portal-container {
+                    font-family: sans-serif;
+                    max-width: 400px;
+                    margin: 5% auto;
+                    padding: 40px;
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 25px -5px rgba(0,0,0,.1);
+                }
+                .exam-portal-container h2 {
+                    text-align: center;
+                    font-size: 24px;
+                    margin-bottom: 30px;
+                }
+                .exam-portal-container .form-row {
+                    margin-bottom: 20px;
+                }
+                .exam-portal-container label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 600;
+                }
+                .exam-portal-container input[type="radio"] {
+                    margin-right: 10px;
+                }
+                .exam-portal-container button {
+                    width: 100%;
+                    padding: 14px;
+                    background-color: #0891b2;
+                    color: #fff;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+                .exam-portal-container button:hover {
+                    background-color: #067a8e;
+                }
+                .exam-portal-links {
+                    margin-top: 20px;
+                    text-align: center;
+                }
+                .exam-portal-error {
+                    color: red;
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                .exam-portal-debug {
+                    color: #555;
+                    text-align: center;
+                    margin-bottom: 20px;
+                    font-size: 12px;
+                    word-wrap: break-word;
+                }
+            </style>
             <div class="exam-portal-container" id="exam-switch-form-container">
                 <h2>Exam Portal Access</h2>
+                <?php if ($login_error) echo "<p class='exam-portal-error'>" . esc_html($login_error) . "</p>"; ?>
+                <?php if ($debug_info) echo "<p class='exam-portal-debug'>" . esc_html($debug_info) . "</p>"; ?>
                 <p>You are logged in as an administrator. Choose an exam app to access:</p>
                 <form name="switchform" id="switchform" action="<?php echo esc_url(add_query_arg('redirect_to', urlencode($redirect_to), '')); ?>" method="post">
                     <div class="form-row">
-                        <label><input type="radio" name="exam_app_url" value="test" checked> Test App</label>
+                        <label><input type="radio" name="exam_app_url" value="test" checked> Test App (<?php echo esc_html(ANNAPOORNA_EXAM_APP_TEST_URL); ?>)</label>
                     </div>
                     <div class="form-row">
-                        <label><input type="radio" name="exam_app_url" value="production"> Production App</label>
+                        <label><input type="radio" name="exam_app_url" value="production"> Production App (<?php echo esc_html(ANNAPOORNA_EXAM_APP_URL); ?>)</label>
                     </div>
                     <div class="form-row">
                         <button type="submit">Go to Exam App</button>
                     </div>
                     <?php wp_nonce_field('admin_switch_action', 'admin_switch_nonce'); ?>
                 </form>
+                <div class="exam-portal-links">
+                    <a href="<?php echo esc_url(wp_logout_url(home_url(ANNAPOORNA_LOGIN_SLUG))); ?>">Log Out</a>
+                </div>
             </div>
             <?php
         } else {
+            // Non-admin: automatic redirect
             $token = annapoorna_generate_exam_jwt($user_id);
             if ($token) {
                 $proceed_url = annapoorna_get_exam_app_url(false) . '#/auth?token=' . $token . '&redirect_to=' . urlencode($redirect_to);
                 echo "<div class='exam-portal-container' style='text-align:center;'><p>You are already logged in. Redirecting...</p><script>window.location.href = '" . esc_url_raw($proceed_url) . "';</script></div>";
             } else {
-                echo "<div class='exam-portal-container' style='text-align:center;'><p class='exam-portal-error'>Error: Could not generate login token.</p></div>";
+                echo "<div class='exam-portal-container' style='text-align:center;'><p class='exam-portal-error'>Error: Could not generate login token. Please check debug log and contact support.</p></div>";
             }
         }
     } else {
+        // Not logged in: show login form
         ?>
-        <style>.exam-portal-container{font-family:sans-serif;max-width:400px;margin:5% auto;padding:40px;background:#fff;border-radius:12px;box-shadow:0 10px 25px -5px rgba(0,0,0,.1)}.exam-portal-container h2{text-align:center;font-size:24px;margin-bottom:30px}.exam-portal-container .form-row{margin-bottom:20px}.exam-portal-container label{display:block;margin-bottom:8px;font-weight:600;}.exam-portal-container input{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}.exam-portal-container button{width:100%;padding:14px;background-color:#0891b2;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}.exam-portal-links{margin-top:20px;text-align:center}</style>
+        <style>
+            .exam-portal-container {
+                font-family: sans-serif;
+                max-width: 400px;
+                margin: 5% auto;
+                padding: 40px;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px -5px rgba(0,0,0,.1);
+            }
+            .exam-portal-container h2 {
+                text-align: center;
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+            .exam-portal-container .form-row {
+                margin-bottom: 20px;
+            }
+            .exam-portal-container label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+            .exam-portal-container input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                box-sizing: border-box;
+            }
+            .exam-portal-container button {
+                width: 100%;
+                padding: 14px;
+                background-color: #0891b2;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+            .exam-portal-container button:hover {
+                background-color: #067a8e;
+            }
+            .exam-portal-links {
+                margin-top: 20px;
+                text-align: center;
+            }
+            .exam-portal-error {
+                color: red;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        </style>
         <div class="exam-portal-container" id="exam-login-form-container">
             <h2>Exam Portal Login</h2>
-            <?php if ($login_error) echo "<p style='color:red;text-align:center;'>". esc_html($login_error) ."</p>"; ?>
+            <?php if ($login_error) echo "<p class='exam-portal-error'>" . esc_html($login_error) . "</p>"; ?>
             <form name="loginform" id="loginform" action="<?php echo esc_url(add_query_arg('redirect_to', urlencode($redirect_to), '')); ?>" method="post">
                 <div class="form-row"><label for="full_name">Full Name (for Certificate)</label><input type="text" name="full_name" id="full_name" required></div>
                 <div class="form-row"><label for="log">Username or Email</label><input type="text" name="log" id="log" required></div>
@@ -278,7 +448,98 @@ function annapoorna_exam_login_shortcode() {
 add_shortcode('exam_portal_login', 'annapoorna_exam_login_shortcode');
 
 /**
+ * Adds custom fields to the WordPress registration form.
+ */
+function annapoorna_exam_add_custom_registration_fields() {
+    ?>
+    <p><label for="first_name">First Name<br/><input type="text" name="first_name" id="first_name" required/></label></p>
+    <p><label for="last_name">Last Name<br/><input type="text" name="last_name" id="last_name" required/></label></p>
+    <p><label for="password">Password<br/><input type="password" name="password" id="password" required/></label></p>
+    <?php
+}
+add_action('register_form', 'annapoorna_exam_add_custom_registration_fields');
+
+/**
+ * Validates custom registration fields.
+ *
+ * @param WP_Error $errors The error object.
+ * @param string $login The username.
+ * @param string $email The email address.
+ * @return WP_Error The modified error object.
+ */
+function annapoorna_exam_validate_reg_fields($errors, $login, $email) {
+    if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['password'])) {
+        $errors->add('field_error', 'All fields, including password, are required.');
+    }
+    return $errors;
+}
+add_filter('registration_errors', 'annapoorna_exam_validate_reg_fields', 10, 3);
+
+/**
+ * Saves custom registration fields and sets user password.
+ *
+ * @param int $user_id The user ID.
+ */
+function annapoorna_exam_save_reg_fields($user_id) {
+    if (!empty($_POST['first_name'])) {
+        update_user_meta($user_id, 'first_name', sanitize_text_field($_POST['first_name']));
+    }
+    if (!empty($_POST['last_name'])) {
+        update_user_meta($user_id, 'last_name', sanitize_text_field($_POST['last_name']));
+    }
+    if (!empty($_POST['first_name']) && !empty($_POST['last_name'])) {
+        update_user_meta($user_id, '_exam_portal_full_name', sanitize_text_field($_POST['first_name']) . ' ' . sanitize_text_field($_POST['last_name']));
+    }
+    if (!empty($_POST['password'])) {
+        wp_set_password($_POST['password'], $user_id);
+    }
+}
+add_action('user_register', 'annapoorna_exam_save_reg_fields');
+
+/**
+ * Auto-logs in the user after registration and sets a transient for redirect.
+ *
+ * @param int $user_id The user ID.
+ */
+function annapoorna_exam_autologin_after_register($user_id) {
+    wp_set_auth_cookie($user_id);
+    set_transient('annapoorna_redirect_after_register_' . $user_id, true, 60);
+    wp_redirect(home_url());
+    exit;
+}
+add_action('user_register', 'annapoorna_exam_autologin_after_register');
+
+/**
+ * Redirects users to the exam portal after registration.
+ * Admins are redirected to ANNAPOORNA_EXAM_APP_TEST_URL, non-admins to ANNAPOORNA_EXAM_APP_URL.
+ */
+function annapoorna_exam_check_redirect_on_load() {
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        if (get_transient('annapoorna_redirect_after_register_' . $user_id)) {
+            delete_transient('annapoorna_redirect_after_register_' . $user_id);
+            $token = annapoorna_generate_exam_jwt($user_id);
+            if ($token) {
+                $user = get_userdata($user_id);
+                $is_admin = $user && in_array('administrator', (array) $user->roles);
+                $final_redirect_url = annapoorna_get_exam_app_url($is_admin) . '#/auth?token=' . $token . '&redirect_to=/dashboard';
+                error_log('ANNAPOORNA: Registration redirect for user ID ' . $user_id . ' to ' . $final_redirect_url);
+                wp_redirect($final_redirect_url);
+                exit;
+            } else {
+                error_log('ANNAPOORNA: Registration redirect failed - JWT generation failed for user ' . $user_id);
+            }
+        }
+    }
+}
+add_action('template_redirect', 'annapoorna_exam_check_redirect_on_load');
+
+/**
  * Customizes the login URL to use the exam portal login page.
+ *
+ * @param string $login_url The default login URL.
+ * @param string $redirect The redirect URL.
+ * @return string The customized login URL.
  */
 function annapoorna_exam_login_url($login_url, $redirect) {
     return home_url(add_query_arg('redirect_to', $redirect, ANNAPOORNA_LOGIN_SLUG));
@@ -287,118 +548,13 @@ add_filter('login_url', 'annapoorna_exam_login_url', 10, 2);
 
 /**
  * Redirects users to the exam portal login page after logout.
+ *
+ * @return string The logout redirect URL.
  */
 function annapoorna_exam_logout_redirect() {
     return home_url(ANNAPOORNA_LOGIN_SLUG);
 }
 add_filter('logout_redirect', 'annapoorna_exam_logout_redirect', 10, 3);
-
-
-// SECTION 4: REST API FOR SAVING TEST RESULTS
-/**
- * Registers the custom REST API endpoint for submitting test results.
- */
-function annapoorna_register_api_routes() {
-    register_rest_route('exam-app/v1', '/submit-result', array(
-        'methods' => 'POST',
-        'callback' => 'annapoorna_handle_submit_result',
-        'permission_callback' => 'annapoorna_rest_permission_check',
-    ));
-}
-add_action('rest_api_init', 'annapoorna_register_api_routes');
-
-/**
- * Decodes a base64url string.
- */
-function annapoorna_base64url_decode($data) {
-    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
-}
-
-/**
- * Validates a JWT from the request header. Used as the permission callback for the REST API.
- */
-function annapoorna_rest_permission_check(WP_REST_Request $request) {
-    $secret_key = defined('ANNAPOORNA_JWT_SECRET') ? ANNAPOORNA_JWT_SECRET : '';
-    if (empty($secret_key)) {
-        return new WP_Error('jwt_auth_failed', 'JWT secret key is not configured.', array('status' => 500));
-    }
-
-    $auth_header = $request->get_header('authorization');
-    if (!$auth_header) {
-        return false;
-    }
-
-    list($token) = sscanf($auth_header, 'Bearer %s');
-    if (!$token) {
-        return false;
-    }
-
-    $parts = explode('.', $token);
-    if (count($parts) !== 3) {
-        return false;
-    }
-
-    list($base64UrlHeader, $base64UrlPayload, $base64UrlSignature) = $parts;
-
-    $signature = annapoorna_base64url_decode($base64UrlSignature);
-    $expectedSignature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret_key, true);
-
-    if (!hash_equals($expectedSignature, $signature)) {
-        return false;
-    }
-
-    $payload = json_decode(annapoorna_base64url_decode($base64UrlPayload));
-    if (!$payload || !isset($payload->exp) || time() > $payload->exp) {
-        return false; // Token expired or invalid payload
-    }
-
-    // Add the validated user ID to the request object for use in the callback.
-    if (isset($payload->user) && isset($payload->user->id)) {
-        $request->set_param('user_id_from_token', $payload->user->id);
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Handles the submission of a test result via the REST API and saves it to user meta.
- */
-function annapoorna_handle_submit_result(WP_REST_Request $request) {
-    $user_id = $request->get_param('user_id_from_token');
-    $result_data = $request->get_json_params();
-
-    if (empty($user_id) || empty($result_data)) {
-        return new WP_Error('invalid_data', 'User ID or result data is missing.', array('status' => 400));
-    }
-
-    // Sanitize the input data to ensure it's safe
-    $sanitized_result = [
-        'testId' => sanitize_text_field($result_data['testId']),
-        'examId' => sanitize_text_field($result_data['examId']),
-        'score' => floatval($result_data['score']),
-        'correctCount' => intval($result_data['correctCount']),
-        'totalQuestions' => intval($result_data['totalQuestions']),
-        'timestamp' => intval($result_data['timestamp']),
-    ];
-
-    try {
-        $all_results = get_user_meta($user_id, '_exam_app_results', true);
-        if (!is_array($all_results)) {
-            $all_results = [];
-        }
-
-        // Add the new result, using its unique testId as the key to prevent duplicates
-        $all_results[$sanitized_result['testId']] = $sanitized_result;
-        
-        update_user_meta($user_id, '_exam_app_results', $all_results);
-        
-        return new WP_REST_Response(array('success' => true, 'message' => 'Result saved.'), 200);
-
-    } catch (Exception $e) {
-        return new WP_Error('db_error', 'Could not save result to user meta.', array('status' => 500));
-    }
-}
 ?>`;
 
 const Integration = () => {
