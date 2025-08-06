@@ -50,7 +50,7 @@ const LandingPage: React.FC = () => {
                         to="/dashboard"
                         className="bg-cyan-600 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-lg text-lg hover:bg-cyan-700 transition-transform transform hover:scale-105 inline-block"
                     >
-                        Go to Dashboard
+                        Go to User Dashboard 
                     </Link>
                 ) : (
                     <div className="flex flex-col items-center">
